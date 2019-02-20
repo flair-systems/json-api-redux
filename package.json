@@ -1,0 +1,29 @@
+{
+  "name": "json-api-redux",
+  "version": "1.0.0",
+  "description": "Hypermedia JSON API Client for Redux",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edpaget/json-api-redux.git"
+  },
+  "keywords": [
+    "redux",
+    "json",
+    "json-api"
+  ],
+  "author": "Edward Paget",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/edpaget/json-api-redux/issues"
+  },
+  "homepage": "https://github.com/edpaget/json-api-redux#readme",
+  "dependencies": {
+    "fetch-ponyfill": "^6.0.2",
+    "typesafe-actions": "^3.1.0",
+    "typescript": "^3.3.3"
+  }
+}
