@@ -1,19 +1,27 @@
 import { APIError, APINetworkError, NoAPITypeError } from './errors';
-import { fetch, Headers, Request } from './fetch';
+import { fetch as defaultFetch, Headers } from './fetch';
 import { PageableResponse } from './PageableResponse';
 import { HTTPMethod, IAPIClient, IAPIRoot, IFilters, IJSONAPIResponse, IPaging } from './types';
 
 export class JSONAPIClient implements IAPIClient {
-  private fetch: (req: Request) => Promise<Response>;
+  private fetch: (url: RequestInfo, init?: RequestInit) => Promise<Response>;
   private apiRoot: IAPIRoot;
   private defaultHeaders: {[key: string]: string};
+  private defaultFetchArgs: RequestInit;
   private apiPrefix: string;
 
-  constructor(apiRoot: IAPIRoot, _fetch = fetch, apiPrefix = '', defaultHeaders = {}) {
-    this.fetch = _fetch;
+  constructor(
+    apiRoot: IAPIRoot,
+    fetch = defaultFetch,
+    apiPrefix = '',
+    defaultHeaders = {},
+    defaultFetchArgs = {},
+  ) {
+    this.fetch = fetch;
     this.apiRoot = apiRoot;
     this.apiPrefix = apiPrefix;
     this.defaultHeaders = defaultHeaders;
+    this.defaultFetchArgs = defaultFetchArgs;
   }
 
   public async list<T> (type: string, filters?: IFilters, page?: IPaging): Promise<PageableResponse<T>> {
@@ -36,8 +44,15 @@ export class JSONAPIClient implements IAPIClient {
   }
 
   public makeDirectRequest<T> (url: string, method: HTTPMethod): Promise<IJSONAPIResponse<T>> {
-    const req = this.newRequest(url, method);
-    return this.fetch(req).then(this.parseResponse);
+    const headers = new Headers({
+      'Accept': 'application/vnd.api+json',
+      ...this.defaultHeaders,
+    });
+    return this.fetch(url, {
+      headers,
+      method,
+      ...this.defaultFetchArgs,
+    }).then(this.parseResponse);
   }
 
   private async parseResponse<T> (response: Response): Promise<IJSONAPIResponse<T>> {
@@ -54,16 +69,5 @@ export class JSONAPIClient implements IAPIClient {
 
   private toQuery(filters?: IFilters, page?: IPaging): string {
     return '';
-  }
-
-  private newRequest(url: string, method: HTTPMethod) {
-    const headers = new Headers({
-      'Accept': 'application/vnd.api+json',
-      ...this.defaultHeaders
-    })
-    return new Request(url, {
-      headers,
-      method,
-    });
   }
 }

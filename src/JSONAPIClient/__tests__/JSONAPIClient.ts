@@ -1,7 +1,9 @@
 import 'jest';
+
+import { fetch, Headers } from '../fetch';
 import { JSONAPIClient } from '../JSONAPIClient';
 import { IAPIRoot } from '../types';
-import { fetch } from '../fetch';
+
 jest.mock('../fetch')
 
 interface IUser {
@@ -25,35 +27,39 @@ describe('JSONAPIClient', () => {
     const mockFetch = fetch as jest.Mock;
     mockFetch.mockReset();
     mockFetch.mockResolvedValue({
-      ok: true,
       json: () => {
         return Promise.resolve({
           data: [{
+            attributes: {
+              'email': 'ed@flair.co',
+              'name': 'Ed Paget',
+            },
             id: '1',
             type: 'users',
-            attributes: {
-              'name': 'Ed Paget',
-              'email': 'ed@flair.co',
-            },
           }],
           meta: {
-            self: '/api/users?page[size]=1&page[page]=2',
-            nextPage: '/api/responses?page[size]=1&page[page]=3',
-            prevPage: '/api/responses?page[size]=1&page[page]=1',
             firstPage: '/api/responses?page[size]=1&page[page]=1',
             lastPage: '/api/responses?page[size]=1&page[page]=10',
+            nextPage: '/api/responses?page[size]=1&page[page]=3',
+            prevPage: '/api/responses?page[size]=1&page[page]=1',
+            self: '/api/users?page[size]=1&page[page]=2',
           },
-        })
+          ok: true,
+        });
       },
-    })
+    });
 
     const client = new JSONAPIClient(apiRoot, mockFetch, apiPrefix);
 
     it('should make a request to https://example.com/api/users', async () => {
       await client.list<IUser>('users');
-      expect(fetch).toHaveBeenCalledWith(expect.objectContaining({
-        url: 'https://example.com/api/users',
-      }));
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.com/api/users',
+        expect.objectContaining({
+          headers: expect.any(Headers),
+          method: 'GET',
+        }),
+      );
     });
   });
 
@@ -61,22 +67,22 @@ describe('JSONAPIClient', () => {
     const mockFetch = fetch as jest.Mock;
     mockFetch.mockReset();
     mockFetch.mockResolvedValue({
-      ok: true,
       json: () => {
         return Promise.resolve({
           data: {
+            attributes: {
+              'email': 'ed@flair.co',
+              'name': 'Ed Paget',
+            },
             id: '1',
             type: 'users',
-            attributes: {
-              'name': 'Ed Paget',
-              'email': 'ed@flair.co',
-            },
           },
           meta: {
             self: '/api/users/1',
           },
-        })
+        });
       },
+      ok: true,
     });
 
 
@@ -84,17 +90,21 @@ describe('JSONAPIClient', () => {
 
     it('should make a request to https://example.com/api/users/1', async () => {
       await client.show<IUser>('users', '1');
-      expect(fetch).toHaveBeenCalledWith(expect.objectContaining({
-        url: 'https://example.com/api/users/1',
-      }));
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.com/api/users/1',
+        expect.objectContaining({
+          headers: expect.any(Headers),
+          method: 'GET',
+        }),
+      );
     });
 
     it('should return the parsed JSON API Document', async () => {
       const resp = await client.show<IUser>('users', '1');
       expect(resp.data).toEqual(expect.objectContaining({
         attributes: expect.objectContaining({
-          name: expect.any(String),
           email: expect.any(String),
+          name: expect.any(String),
         }),
         id: expect.any(String),
         type: expect.any(String),

@@ -1,5 +1,7 @@
 import { IJSONAPIErrorResponse } from './types';
 
+// tslint:disable:max-classes-per-file
+
 export class NoPageLinkError extends Error {
   constructor(linkType: string) {
     super();
@@ -33,5 +35,15 @@ export class APINetworkError extends Error {
     super();
     this.message = `API Responded with '${response.status}: ${response.statusText}'.`
     this.response = response;
+  }
+}
+
+export class APIRootFailure extends Error {
+  public response: Response;
+
+  constructor(url: string, response: Response) {
+    super();
+    this.response = response;
+    this.message = `Failed to GET ${url}. Request returned with status of ${response.status}: ${response.statusText}.`;
   }
 }

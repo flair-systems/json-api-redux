@@ -1,4 +1,5 @@
 import 'jest';
+
 import { PageableResponse } from '../PageableResponse';
 import { IJSONAPIResponse } from '../types';
 
@@ -9,24 +10,24 @@ export interface IResponse {
 const response : IJSONAPIResponse<IResponse> = {
   data: [
     {
-      id: '1',
-      type: 'responses',
       attributes: {
         name: 'An HTTP Request',
       },
+      id: '1',
+      type: 'responses',
     },
   ],
   meta: {
-    self: '/api/responses/page[size]=1&page[page]=1',
-    prevPage: null,
-    nextPage: '/api/responses?page[size]=1&page[page]=2',
-    lastPage: '/api/responses?page[size]=1&page[page]=10',
     firstPage: '/api/responses/page[size]=1&page[page]=1',
-  }
-}
+    lastPage: '/api/responses?page[size]=1&page[page]=10',
+    nextPage: '/api/responses?page[size]=1&page[page]=2',
+    prevPage: null,
+    self: '/api/responses/page[size]=1&page[page]=1',
+  },
+};
 
 const client = {
-  makeDirectRequest: jest.fn((url, method) => {
+  makeDirectRequest: jest.fn((_1, _2) => {
     return Promise.resolve(response);
   }),
 };
