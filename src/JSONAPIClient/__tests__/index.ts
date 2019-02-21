@@ -64,6 +64,7 @@ describe('fetchAPIRootAndInitClient', () => {
       );
     });
   });
+
   describe('unsuccessful call', () => {
     beforeEach(() => {
       const mockFetch = fetch as jest.Mock;
