@@ -3,8 +3,8 @@ import 'jest';
 import { initialState, reduceAPIResource } from '../index';
 
 import { APIAction } from '../../actions';
-import { APIActionStatus, IJSONAPIState } from '../../types';
 import * as constants from '../../actions/constants';
+import { APIActionStatus, IJSONAPIState } from '../../types';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
 jest.mock('../../JSONAPIClient');

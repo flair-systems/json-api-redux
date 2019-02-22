@@ -3,8 +3,8 @@ import 'jest';
 import { ActionCreator } from 'redux';
 
 import {
-  readApiAction,
   APIReadActionThunk,
+  readApiAction,
 } from '../apiActions';
 
 import { APIActionStatus, IJSONAPIState } from '../../types';
@@ -39,7 +39,7 @@ const client = new JSONAPIClient({
   },
 });
 
-const state = (): IJSONAPIState<string> => {
+const state = (): {[key: string]: IJSONAPIState<string>} => {
   return {
     'async-mock': {
       status: APIActionStatus.SUCCEEDED,

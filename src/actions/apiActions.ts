@@ -21,9 +21,13 @@ export interface IFailedAPIAction<T> extends Action {
   status: APIActionStatus.FAILED;
 }
 
+interface IGlobalState<P> {
+  [key: string]: IJSONAPIState<P>;
+};
+
 export type APIReadAction<T, P> = IReadAPIAction<T> | ISucceededAPIAction<T, P> | IFailedAPIAction<T>;
 
-export type APIReadActionThunk<T, P> = ThunkAction<Promise<APIReadAction<T, P>>, IJSONAPIState<P>, JSONAPIClient, APIReadAction<T, P>>;
+export type APIReadActionThunk<T, P> = ThunkAction<Promise<APIReadAction<T, P>>, IGlobalState<P>, JSONAPIClient, APIReadAction<T, P>>;
 
 const readAPIAction = <T>(type: T): IReadAPIAction<T> => {
   return {
@@ -50,7 +54,7 @@ const failedAPIAction = <T>(type: T, payload: FailedResponse): IFailedAPIAction<
 
 export const readApiAction = <T, P>(
   type: T,
-  asyncMethod: (client: JSONAPIClient, state: IJSONAPIState<P>, ...args: any[]) => Promise<SuccessfulResponse<P>>,
+  asyncMethod: (client: JSONAPIClient, state: IGlobalState<P>, ...args: any[]) => Promise<SuccessfulResponse<P>>,
 ): ActionCreator<APIReadActionThunk<T, P>> => {
   return (...args: any[]) => {
     return async (dispatch, getState, client: JSONAPIClient) => {

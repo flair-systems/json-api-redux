@@ -1,6 +1,6 @@
 import { ActionCreator } from 'redux';
 
-import { APIReadActionThunk, APIReadAction, readApiAction } from './apiActions';
+import { APIReadAction, APIReadActionThunk, readApiAction } from './apiActions';
 import * as constants from './constants';
 
 export type APIAction<P> =

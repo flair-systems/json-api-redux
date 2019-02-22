@@ -42,7 +42,7 @@ const pageableResource = new PageableResponse<IUser>(client, {
   },
 });
 
-const state = (): IJSONAPIState<IUser> => {
+const state = (): {[key: string]: IJSONAPIState<IUser>} => {
   return {
     users: {
       currentPaged: pageableResource,
