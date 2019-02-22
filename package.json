@@ -2,7 +2,8 @@
   "name": "json-api-redux",
   "version": "1.0.0",
   "description": "Hypermedia JSON API Client for Redux",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest"
   },
