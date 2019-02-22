@@ -22,19 +22,23 @@ const response : IJSONAPIResponse<IResponse> = {
     lastPage: '/api/responses?page[size]=1&page[page]=10',
     nextPage: '/api/responses?page[size]=1&page[page]=2',
     prevPage: null,
-    self: '/api/responses/page[size]=1&page[page]=1',
+    self: '/api/responses?page[size]=1&page[page]=1',
   },
 };
 
+const reqMock = jest.fn();
+
 const client = {
-  makeDirectRequest: jest.fn((_1, _2) => {
-    return Promise.resolve(response);
-  }),
+  makeDirectRequest: reqMock,
 };
 
-const pagedResponse : PageableResponse<IResponse> = new PageableResponse(client, response);
+const pagedResponse : PageableResponse<IResponse> = new PageableResponse<IResponse>(client, response);
 
 describe('PageableResponse', () => {
+  beforeEach(() => {
+    reqMock.mockResolvedValue(response);
+  });
+
   describe('data', () => {
     it('should return the data attribute of the response', () => {
       expect(pagedResponse.data).toContainEqual(expect.objectContaining({

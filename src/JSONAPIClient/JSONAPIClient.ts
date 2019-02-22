@@ -43,16 +43,17 @@ export class JSONAPIClient implements IAPIClient {
     return this.makeDirectRequest<T>(`${this.apiPrefix}${this.apiRoot.links[type].self}/${id}`, 'GET');
   }
 
-  public makeDirectRequest<T> (url: string, method: HTTPMethod): Promise<IJSONAPIResponse<T>> {
+  public async makeDirectRequest<T> (url: string, method: HTTPMethod): Promise<IJSONAPIResponse<T>> {
     const headers = new Headers({
       'Accept': 'application/vnd.api+json',
       ...this.defaultHeaders,
     });
-    return this.fetch(url, {
+    const resp = await this.fetch(url, {
       headers,
       method,
       ...this.defaultFetchArgs,
-    }).then(this.parseResponse);
+    })
+    return this.parseResponse<T>(resp);
   }
 
   private async parseResponse<T> (response: Response): Promise<IJSONAPIResponse<T>> {

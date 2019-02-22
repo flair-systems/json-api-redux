@@ -14,7 +14,7 @@ export interface IFilters {
 export interface IPaging {
   page?: string;
   size?: string;
-  offset? string;
+  offset?: string;
 }
 
 export interface IJSONAPIMeta {
@@ -25,7 +25,7 @@ export interface IJSONAPIMeta {
   prevPage?: string | null;
 }
 
-export interface IJSONAPIDocument {
+export interface IJSONAPIDocument<T> {
   id: string;
   type: string;
   attributes: T;
