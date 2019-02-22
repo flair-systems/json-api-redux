@@ -4,11 +4,10 @@ import { ActionCreator } from 'redux';
 
 import {
   apiAction,
-  APIActionStatus,
   APIActionThunk,
-  IJSONAPIState,
-  IJSONAPIStateResource,
 } from '../apiActions';
+
+import { APIActionStatus, IJSONAPIState, IJSONAPIStateResource } from '../../types';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
 jest.mock('../../JSONAPIClient');
