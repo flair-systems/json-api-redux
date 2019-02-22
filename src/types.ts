@@ -6,25 +6,26 @@ export type SuccessfulResponse<P> = IJSONAPIResponse<P> | PageableResponse<P>;
 export type FailedResponse = APIError | APINetworkError;
 
 export interface IJSONAPIStateResource<T> {
-  currentPaged?: PageableResponse<T>;
-  loading: boolean;
   error?: FailedResponse;
-  resources: {
-    [key: string]: {
-      loading: boolean;
-      error?: FailedResponse;
-      resource: IJSONAPIDocument<T>;
-    };
-  };
+  resource?: IJSONAPIDocument<T>;
+  status: APIActionStatus;
 }
 
-export interface IJSONAPIState {
-  apiResources: <T>(resourceType: string) => IJSONAPIStateResource<T>;
+export interface IJSONAPIState<T> {
+  currentPaged?: PageableResponse<T>;
+  error?: FailedResponse;
+  resources: {
+    [key: string]: IJSONAPIStateResource<T>;
+  };
+  status: APIActionStatus;
 }
 
 export enum APIActionStatus {
   INITIALIZED = 'INITIALIZED',
-  IN_PROGRESS = 'IN_PROGRESS',
+  CREATING = 'CREATING',
+  UPDATING = 'UPDATING',
+  DELETING = 'DELETING',
+  READING = 'READING',
   SUCCEEDED = 'SUCCEEDED',
   FAILED = 'FAILED',
 }

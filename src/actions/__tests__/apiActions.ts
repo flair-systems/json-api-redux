@@ -3,11 +3,11 @@ import 'jest';
 import { ActionCreator } from 'redux';
 
 import {
-  apiAction,
-  APIActionThunk,
+  readApiAction,
+  APIReadActionThunk,
 } from '../apiActions';
 
-import { APIActionStatus, IJSONAPIState, IJSONAPIStateResource } from '../../types';
+import { APIActionStatus, IJSONAPIState } from '../../types';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
 jest.mock('../../JSONAPIClient');
@@ -15,7 +15,7 @@ jest.mock('../../JSONAPIClient');
 const TEST_ACTION = 'TEST_ACTION';
 type TEST_ACTION = typeof TEST_ACTION;
 
-type TestActionThunk = APIActionThunk<TEST_ACTION, string>;
+type TestActionThunk = APIReadActionThunk<TEST_ACTION, string>;
 
 const mockData = {
   attributes: 'string',
@@ -25,7 +25,7 @@ const mockData = {
 
 const asyncMock = jest.fn()
 
-const testAction: ActionCreator<TestActionThunk> = apiAction<TEST_ACTION, string>(
+const testAction: ActionCreator<TestActionThunk> = readApiAction<TEST_ACTION, string>(
   TEST_ACTION,
   (_1, _2, inputArg: string) => asyncMock(inputArg),
 )
@@ -39,23 +39,21 @@ const client = new JSONAPIClient({
   },
 });
 
-const state = (): IJSONAPIState => {
+const state = (): IJSONAPIState<string> => {
   return {
-    apiResources: (_: string): IJSONAPIStateResource<any> => {
-      return {
-        loading: false,
-        resources: {
-          '1': {
-            loading: false,
-            resource: mockData,
-          },
+    'async-mock': {
+      status: APIActionStatus.SUCCEEDED,
+      resources: {
+        '1': {
+          resource: mockData,
+          status: APIActionStatus.SUCCEEDED,
         },
-      };
+      },
     },
-  }
-}
+  };
+};
 
-describe('apiAction creator', () => {
+describe('readApiAction creator', () => {
   describe('successful action', () => {
     asyncMock.mockReset();
     beforeEach(() => {
@@ -68,10 +66,11 @@ describe('apiAction creator', () => {
     });
 
     it('should dispatch started action', async () => {
-      const dispatch = jest.fn();
+      const dispatch = jest.fn()
+;
       await testAction('input')(dispatch, state, client);
       expect(dispatch).toHaveBeenCalledWith({
-        status: APIActionStatus.IN_PROGRESS,
+        status: APIActionStatus.READING,
         type: TEST_ACTION,
       });
     });
@@ -104,7 +103,7 @@ describe('apiAction creator', () => {
       const dispatch = jest.fn();
       await testAction('input')(dispatch, state, client);
       expect(dispatch).toHaveBeenCalledWith({
-        status: APIActionStatus.IN_PROGRESS,
+        status: APIActionStatus.READING,
         type: TEST_ACTION,
       });
     });

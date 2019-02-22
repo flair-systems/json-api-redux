@@ -1,7 +1,7 @@
 import 'jest';
 
-import { IJSONAPIState, IJSONAPIStateResource } from '../apiActions';
-import { listAPIResource, showAPIResource, pageAPIResource } from '../index';
+import { APIActionStatus, IJSONAPIState } from '../../types';
+import { listAPIResource, pageAPIResource, showAPIResource } from '../index';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
 import { PageableResponse } from '../../JSONAPIClient/PageableResponse';
@@ -39,25 +39,23 @@ const pageableResource = new PageableResponse<IUser>(client, {
     nextPage: '/api/users?page[size]=1&page[page]=2',
     prevPage: null,
     self: '/api/users?page[size]=1&page[page]=1',
-  }
+  },
 });
 
-const state = (): IJSONAPIState => {
+const state = (): IJSONAPIState<IUser> => {
   return {
-    apiResources: (_: string): IJSONAPIStateResource<any> => {
-      return {
-        currentPaged: pageableResource,
-        loading: false,
-        resources: {
-          '1': {
-            loading: false,
-            resource: mockData,
-          },
+    users: {
+      currentPaged: pageableResource,
+      resources: {
+        '1': {
+          resource: mockData,
+          status: APIActionStatus.SUCCEEDED,
         },
-      };
+      },
+      status: APIActionStatus.SUCCEEDED,
     },
-  }
-}
+  };
+};
 
 describe('listAPIResource', () => {
   it('should call list on the api resource', async () => {

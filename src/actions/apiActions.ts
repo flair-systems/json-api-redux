@@ -4,9 +4,9 @@ import { ThunkAction } from 'redux-thunk';
 import { JSONAPIClient } from '../JSONAPIClient';
 import { APIActionStatus, FailedResponse, IJSONAPIState, SuccessfulResponse } from '../types';
 
-export interface IStartedAPIAction<T> extends Action {
+export interface IReadAPIAction<T> extends Action {
   type: T;
-  status: APIActionStatus.IN_PROGRESS;
+  status: APIActionStatus.READING;
 }
 
 export interface ISucceededAPIAction<T, P> extends Action {
@@ -21,13 +21,13 @@ export interface IFailedAPIAction<T> extends Action {
   status: APIActionStatus.FAILED;
 }
 
-export type APIAction<T, P> = IStartedAPIAction<T> | ISucceededAPIAction<T, P> | IFailedAPIAction<T>;
+export type APIReadAction<T, P> = IReadAPIAction<T> | ISucceededAPIAction<T, P> | IFailedAPIAction<T>;
 
-export type APIActionThunk<T, P> = ThunkAction<Promise<APIAction<T, P>>, IJSONAPIState, JSONAPIClient, APIAction<T, P>>;
+export type APIReadActionThunk<T, P> = ThunkAction<Promise<APIReadAction<T, P>>, IJSONAPIState<P>, JSONAPIClient, APIReadAction<T, P>>;
 
-const startedAPIAction = <T>(type: T): IStartedAPIAction<T> => {
+const readAPIAction = <T>(type: T): IReadAPIAction<T> => {
   return {
-    status: APIActionStatus.IN_PROGRESS,
+    status: APIActionStatus.READING,
     type,
   };
 };
@@ -48,13 +48,13 @@ const failedAPIAction = <T>(type: T, payload: FailedResponse): IFailedAPIAction<
   };
 };
 
-export const apiAction = <T, P>(
+export const readApiAction = <T, P>(
   type: T,
-  asyncMethod: (client: JSONAPIClient, state: IJSONAPIState, ...args: any[]) => Promise<SuccessfulResponse<P>>,
-): ActionCreator<APIActionThunk<T, P>> => {
+  asyncMethod: (client: JSONAPIClient, state: IJSONAPIState<P>, ...args: any[]) => Promise<SuccessfulResponse<P>>,
+): ActionCreator<APIReadActionThunk<T, P>> => {
   return (...args: any[]) => {
     return async (dispatch, getState, client: JSONAPIClient) => {
-      dispatch(startedAPIAction<T>(type));
+      dispatch(readAPIAction<T>(type));
       try {
         const response = await asyncMethod(client, getState(), ...args);
         return dispatch(succeededAPIAction<T, P>(type, response));
