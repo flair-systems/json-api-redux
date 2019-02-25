@@ -1,7 +1,16 @@
 import { APIError, APINetworkError, NoAPITypeError } from './errors';
 import { fetch as defaultFetch, Headers } from './fetch';
 import { PageableResponse } from './PageableResponse';
-import { HTTPMethod, IAPIClient, IAPIRoot, IFilters, IJSONAPIResponse, IPaging } from './types';
+import {
+  HTTPMethod,
+  IAPIClient,
+  IAPIRoot,
+  IFilters,
+  IJSONAPIResponse,
+  IJSONAPIRelationships,
+  IPaging,
+  IJSONAPIDocument,
+} from './types';
 
 export class JSONAPIClient implements IAPIClient {
   private fetch: (url: RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -43,16 +52,52 @@ export class JSONAPIClient implements IAPIClient {
     return this.makeDirectRequest<T>(`${this.apiPrefix}${this.apiRoot.links[type].self}/${id}`, 'GET');
   }
 
-  public async makeDirectRequest<T> (url: string, method: HTTPMethod): Promise<IJSONAPIResponse<T>> {
-    const headers = new Headers({
-      'Accept': 'application/vnd.api+json',
-      ...this.defaultHeaders,
-    });
-    const resp = await this.fetch(url, {
+  public async create<T> (type: string, attributes: T, relationships?: IJSONAPIRelationships, id?: string): Promise<IJSONAPIResponse<T>> {
+    if (!this.apiRoot.links[type]) {
+      throw new NoAPITypeError(type);
+    }
+
+    const body: IJSONAPIDocument<T> = {
+      attributes,
+      relationships: relationships ? relationships : {},
+      type,
+    }
+
+    if (id) {
+      body.id = id;
+    }
+
+    return this.makeDirectRequest<T>(
+      `${this.apiPrefix}${this.apiRoot.links[type].self}`,
+      'POST',
+      body,
+    )
+  }
+
+  public async makeDirectRequest<T> (url: string, method: HTTPMethod, body?: IJSONAPIDocument<T>): Promise<IJSONAPIResponse<T>> {
+    let headers: Headers;
+    if (body) {
+      headers = new Headers({
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/json',
+        ...this.defaultHeaders,
+      });
+    } else {
+      headers = new Headers({
+        'Accept': 'application/vnd.api+json',
+        ...this.defaultHeaders,
+      });
+    }
+
+    const includeBody = body ? { body: JSON.stringify({ data: body }) } : { };
+    const requestInfo = {
       headers,
       method,
+      ...includeBody,
       ...this.defaultFetchArgs,
-    })
+    }
+
+    const resp = await this.fetch(url, requestInfo)
     return this.parseResponse<T>(resp);
   }
 

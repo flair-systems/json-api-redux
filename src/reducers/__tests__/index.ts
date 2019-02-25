@@ -22,6 +22,7 @@ const mockData = {
     name: 'Ed Paget',
   },
   id: '1',
+  relationships: {},
   type: 'users',
 };
 

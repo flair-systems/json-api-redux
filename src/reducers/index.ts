@@ -16,10 +16,12 @@ const updateResources = <P>(
   indexResources: {[key: string]: IJSONAPIStateResource<P>},
   newResource: IJSONAPIDocument<P>,
 ) => {
-  indexResources[newResource.id] = {
-    resource: newResource,
-    status: APIActionStatus.SUCCEEDED,
-  };
+  if (newResource.id) {
+    indexResources[newResource.id] = {
+      resource: newResource,
+      status: APIActionStatus.SUCCEEDED,
+    };
+  }
   return indexResources;
 }
 

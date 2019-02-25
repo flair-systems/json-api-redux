@@ -35,6 +35,7 @@ describe('JSONAPIClient', () => {
               'name': 'Ed Paget',
             },
             id: '1',
+            relationships: {},
             type: 'users',
           }],
           meta: {
@@ -63,6 +64,44 @@ describe('JSONAPIClient', () => {
     });
   });
 
+  describe('create', () => {
+    const mockFetch = fetch as jest.Mock;
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue({
+      json: () => {
+        return Promise.resolve({
+          data: {
+            attributes: {
+              'email': 'ed@flair.co',
+              'name': 'Ed Paget',
+            },
+            id: '1',
+            relationships: {},
+            type: 'users',
+          },
+          meta: {
+            self: '/api/users/1',
+          },
+        });
+      },
+      ok: true,
+    });
+
+    const client = new JSONAPIClient(apiRoot, fetch, apiPrefix);
+
+    it('should make a post request to https://example.com/api/users', async () => {
+      await client.create<IUser>('users', { name: 'Ed Paget', email: 'ed@flair.co' })
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.com/api/users',
+        expect.objectContaining({
+          body: expect.stringContaining('"data":'),
+          headers: expect.any(Headers),
+          method: 'POST',
+        }),
+      );
+    });
+  });
+
   describe('get', () => {
     const mockFetch = fetch as jest.Mock;
     mockFetch.mockReset();
@@ -75,6 +114,7 @@ describe('JSONAPIClient', () => {
               'name': 'Ed Paget',
             },
             id: '1',
+            relationships: {},
             type: 'users',
           },
           meta: {

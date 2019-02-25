@@ -20,6 +20,7 @@ type TestActionThunk = APIReadActionThunk<TEST_ACTION, string>;
 const mockData = {
   attributes: 'string',
   id: '1',
+  relationships: {},
   type: 'async-mock',
 };
 

@@ -1,7 +1,18 @@
 import { ActionCreator } from 'redux';
 
-import { APIReadAction, APIReadActionThunk, readApiAction } from './apiActions';
+import {
+  APICreateActionThunk,
+  APIReadAction,
+  APIReadActionThunk,
+  createAPIAction,
+  failedAPIAction,
+  readApiAction,
+  succeededAPIAction,
+} from './apiActions';
 import * as constants from './constants';
+
+import { JSONAPIClient } from '../JSONAPIClient';
+import { IJSONAPIRelationships } from '../JSONAPIClient/types';
 
 export type APIAction<P> =
   APIReadAction<constants.LIST_JSONAPI_RESOURCE, P> |
@@ -50,3 +61,23 @@ export const pageAPIResource = <P>(resourceType: string): ActionCreator<PageAPIR
     },
   );
 }
+
+export const createAPIResource = <P>(type: string): ActionCreator<APICreateActionThunk<P>> => {
+  return (attributes: P, relationships?: IJSONAPIRelationships, id?: string) => {
+    return async (dispatch, _, client: JSONAPIClient) => {
+      dispatch(createAPIAction({
+        attributes,
+        id,
+        relationships: relationships ? relationships : {},
+        type,
+      }));
+      try {
+        const response = await client.create<P>(type, attributes, relationships, id);
+        return dispatch(succeededAPIAction<constants.CREATE_JSONAPI_RESOURCE,P>(constants.CREATE_JSONAPI_RESOURCE, response));
+      } catch (error) {
+        return dispatch(failedAPIAction<constants.CREATE_JSONAPI_RESOURCE>(constants.CREATE_JSONAPI_RESOURCE, error));
+      }
+    }
+  }
+}
+

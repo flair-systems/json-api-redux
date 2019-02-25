@@ -25,10 +25,22 @@ export interface IJSONAPIMeta {
   prevPage?: string | null;
 }
 
-export interface IJSONAPIDocument<T> {
+export interface IJSONAPILink {
+  type: string;
   id: string;
+}
+
+export interface IJSONAPIRelationships {
+  [key: string]: {
+    data: IJSONAPILink | IJSONAPILink[];
+  }
+}
+
+export interface IJSONAPIDocument<T> {
+  id?: string;
   type: string;
   attributes: T;
+  relationships: IJSONAPIRelationships;
 }
 
 export interface IJSONAPIErrorResponse {

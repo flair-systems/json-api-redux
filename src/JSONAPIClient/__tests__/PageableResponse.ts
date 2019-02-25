@@ -14,6 +14,7 @@ const response : IJSONAPIResponse<IResponse> = {
         name: 'An HTTP Request',
       },
       id: '1',
+      relationships: {},
       type: 'responses',
     },
   ],
