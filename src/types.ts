@@ -7,7 +7,7 @@ export type FailedResponse = APIError | APINetworkError;
 
 export interface IJSONAPIStateResource<T> {
   error?: FailedResponse;
-  resource?: IJSONAPIDocument<T>;
+  resource?: Partial<IJSONAPIDocument<T>>;
   status: APIActionStatus;
 }
 

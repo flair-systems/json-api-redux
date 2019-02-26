@@ -6,10 +6,10 @@ import {
   IAPIClient,
   IAPIRoot,
   IFilters,
-  IJSONAPIResponse,
-  IJSONAPIRelationships,
-  IPaging,
   IJSONAPIDocument,
+  IJSONAPIRelationships,
+  IJSONAPIResponse,
+  IPaging,
 } from './types';
 
 export class JSONAPIClient implements IAPIClient {

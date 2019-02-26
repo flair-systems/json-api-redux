@@ -1,32 +1,35 @@
 import { Action, ActionCreator } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 
-import * as constants from './constants';
-
 import { JSONAPIClient } from '../JSONAPIClient';
-import { IJSONAPIDocument } from '../JSONAPIClient/types';
+import { IJSONAPIDocument, IJSONAPIRelationships } from '../JSONAPIClient/types';
 import { APIActionStatus, FailedResponse, IJSONAPIState, SuccessfulResponse } from '../types';
 
-export interface IReadAPIAction<T> extends Action {
-  type: T;
-  status: APIActionStatus.READING;
+interface IAPIAction<T> extends Action {
+  resourceID?: string;
+  resourceType: string;
+  status: APIActionStatus;
+  type: T,
 }
 
-export interface ICreateAPIAction<P> extends Action {
-  type: constants.CREATE_JSONAPI_RESOURCE;
-  status: APIActionStatus.CREATING;
-  payload: IJSONAPIDocument<P>;
+export type APIActionStartStatus =
+  APIActionStatus.READING |
+  APIActionStatus.CREATING |
+  APIActionStatus.UPDATING |
+  APIActionStatus.DELETING;
+
+export interface IStartAPIAction<T, P> extends IAPIAction<T> {
+  payload?: IJSONAPIDocument<P>;
+  status: APIActionStartStatus;
 }
 
-export interface ISucceededAPIAction<T, P> extends Action {
+export interface ISucceededAPIAction<T, P> extends IAPIAction<T> {
   payload: SuccessfulResponse<P>
-  type: T;
   status: APIActionStatus.SUCCEEDED;
 }
 
-export interface IFailedAPIAction<T> extends Action {
+export interface IFailedAPIAction<T> extends IAPIAction<T> {
   payload: FailedResponse;
-  type: T;
   status: APIActionStatus.FAILED;
 }
 
@@ -34,58 +37,113 @@ export interface IGlobalState<P> {
   [key: string]: IJSONAPIState<P>;
 };
 
-export type APIReadAction<T, P> = IReadAPIAction<T> | ISucceededAPIAction<T, P> | IFailedAPIAction<T>;
-export type APICreateAction<P> =
-  ICreateAPIAction<P> |
-  ISucceededAPIAction<constants.CREATE_JSONAPI_RESOURCE, P> |
-  IFailedAPIAction<constants.CREATE_JSONAPI_RESOURCE>;
+export type APIAction<T, P> = IStartAPIAction<T, P> | ISucceededAPIAction<T, P> | IFailedAPIAction<T>;
 
-export type APIReadActionThunk<T, P> = ThunkAction<Promise<APIReadAction<T, P>>, IGlobalState<P>, JSONAPIClient, APIReadAction<T, P>>;
-export type APICreateActionThunk<P> = ThunkAction<Promise<APICreateAction<P>>, IGlobalState<P>, JSONAPIClient, APICreateAction<P>>;
+export type APIActionThunk<T, P> =
+  ThunkAction<Promise<APIAction<T, P>>, IGlobalState<P>, Promise<JSONAPIClient>, APIAction<T, P>>;
 
-const readAPIAction = <T>(type: T): IReadAPIAction<T> => {
+const startAPIAction = <T, P>(
+  type: T,
+  status: APIActionStartStatus,
+  resourceType: string,
+  resourceID?: string,
+  payload?: IJSONAPIDocument<P>,
+): IStartAPIAction<T, P> => {
   return {
-    status: APIActionStatus.READING,
+    payload,
+    resourceID,
+    resourceType,
+    status,
     type,
   };
 };
 
-export const createAPIAction = <P>(payload: IJSONAPIDocument<P>): ICreateAPIAction<P> => {
-  return {
-    payload,
-    status: APIActionStatus.CREATING,
-    type: constants.CREATE_JSONAPI_RESOURCE,
+const succeededAPIAction = <T, P>(type: T, resourceType: string, payload: SuccessfulResponse<P>): ISucceededAPIAction<T, P> => {
+  let resourceID;
+  if (!Array.isArray(payload.data)) {
+    resourceID = payload.data.id;
   }
-}
-
-export const succeededAPIAction = <T, P>(type: T, payload: SuccessfulResponse<P>): ISucceededAPIAction<T, P> => {
   return {
     payload,
+    resourceID,
+    resourceType,
     status: APIActionStatus.SUCCEEDED,
     type,
   };
 };
 
-export const failedAPIAction = <T>(type: T, payload: FailedResponse): IFailedAPIAction<T> => {
+const failedAPIAction = <T>(type: T, resourceType: string, payload: FailedResponse, resourceID?: string): IFailedAPIAction<T> => {
   return {
     payload,
+    resourceID,
+    resourceType,
     status: APIActionStatus.FAILED,
     type,
   };
 };
 
-export const readApiAction = <T, P>(
+export type apiAsyncAction<P> = (
+  client: JSONAPIClient,
+  state: IGlobalState<P>,
+  ...args: any[]
+) => Promise<SuccessfulResponse<P>>;
+
+export type PageLink = 'first' | 'last' | 'next' | 'prev';
+
+export interface IAPIActionArgs<P> {
+  id?: string;
+  attributes?: P;
+  relationships?: IJSONAPIRelationships;
+  pageLink?: PageLink;
+}
+
+const toPayload = <P>(
+  resourceType: string,
+  { id, attributes, relationships }: IAPIActionArgs<P>,
+): IJSONAPIDocument<P> | undefined => {
+  if (attributes) {
+    return {
+      attributes,
+      id,
+      relationships: relationships || { },
+      type: resourceType,
+    };
+  }
+  return undefined;
+}
+
+export const apiAction = <T, P>(
   type: T,
-  asyncMethod: (client: JSONAPIClient, state: IGlobalState<P>, ...args: any[]) => Promise<SuccessfulResponse<P>>,
-): ActionCreator<APIReadActionThunk<T, P>> => {
-  return (...args: any[]) => {
-    return async (dispatch, getState, client: JSONAPIClient) => {
-      dispatch(readAPIAction<T>(type));
+  startStatus: APIActionStartStatus,
+  resourceType: string,
+  asyncMethod: apiAsyncAction<P>,
+): ActionCreator<APIActionThunk<T, P>> => {
+  return (args?: IAPIActionArgs<P>) => {
+    return async (dispatch, getState, client: Promise<JSONAPIClient>) => {
+      if (args) {
+        dispatch(startAPIAction<T, P>(
+          type,
+          startStatus,
+          resourceType,
+          args.id,
+          toPayload(resourceType, args),
+        ));
+      } else {
+        dispatch(startAPIAction<T, P>(
+          type,
+          startStatus,
+          resourceType,
+        ));
+      }
       try {
-        const response = await asyncMethod(client, getState(), ...args);
-        return dispatch(succeededAPIAction<T, P>(type, response));
+        const resolvedClient = await client;
+        const response = await asyncMethod(resolvedClient, getState(), args);
+        return dispatch(succeededAPIAction<T, P>(type, resourceType, response));
       } catch (error) {
-        return dispatch(failedAPIAction<T>(type, error));
+        if (args && args.id) {
+          return dispatch(failedAPIAction<T>(type, resourceType, error, args.id));
+        }
+        return dispatch(failedAPIAction<T>(type, resourceType, error));
       }
     }
   }
