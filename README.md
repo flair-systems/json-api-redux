@@ -20,7 +20,7 @@ A TypeScript JSON API Client and Redux Actions and Reducers
 
 ## License
 
-Copyright 2016 by Standard Euler, Inc
+Copyright 2019 by Standard Euler, Inc
 
 Licensed under the GNU General Public License 3.0. See [LICENSE](./LICENSE).
 
