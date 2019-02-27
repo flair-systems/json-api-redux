@@ -2,7 +2,7 @@ import 'jest';
 
 import * as constants from '../constants';
 
-import { APIActionStatus, IJSONAPIState } from '../../types';
+import { APIActionStatus, IGlobalState } from '../../types';
 import { createAPIResource, listAPIResource, pageAPIResource, showAPIResource } from '../index';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
@@ -54,17 +54,19 @@ const pageableResource = new PageableResponse<IUser>(client, {
   },
 });
 
-const state = (): {[key: string]: IJSONAPIState<IUser>} => {
+const state = (): IGlobalState<IUser> => {
   return {
-    users: {
-      currentPaged: pageableResource,
-      resources: {
-        '1': {
-          resource: mockData,
-          status: APIActionStatus.SUCCEEDED,
+    apiResources: {
+      users: {
+        currentPaged: pageableResource,
+        resources: {
+          '1': {
+            resource: mockData,
+            status: APIActionStatus.SUCCEEDED,
+          },
         },
+        status: APIActionStatus.SUCCEEDED,
       },
-      status: APIActionStatus.SUCCEEDED,
     },
   };
 };

@@ -1,19 +1,12 @@
 import { ActionCreator } from 'redux';
 
 import {
-  APIAction,
   apiAction,
   APIActionThunk,
 } from './apiActions';
 import * as constants from './constants';
 
 import { APIActionStatus } from '../types';
-
-export type APIResourceAction<P> =
-  APIAction<constants.LIST_JSONAPI_RESOURCE, P> |
-  APIAction<constants.SHOW_JSONAPI_RESOURCE, P> |
-  APIAction<constants.PAGE_JSONAPI_RESOURCE, P> |
-  APIAction<constants.CREATE_JSONAPI_RESOURCE, P>;
 
 export type ListAPIActionThunk<P> = APIActionThunk<constants.LIST_JSONAPI_RESOURCE, P>;
 
@@ -45,7 +38,8 @@ export const pageAPIResource = <P>(resourceType: string): ActionCreator<PageAPIR
     APIActionStatus.READING,
     resourceType,
     (_, state, { pageLink }) => {
-      const resource = state[resourceType] ? state[resourceType].currentPaged : null;
+      const resource = state.apiResources[resourceType] ?
+        state.apiResources[resourceType].currentPaged : null;
       if (!resource) {
         throw new Error('Resource does not exist.');
       }

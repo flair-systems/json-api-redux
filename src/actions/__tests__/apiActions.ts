@@ -7,7 +7,7 @@ import {
   APIActionThunk,
 } from '../apiActions';
 
-import { APIActionStatus, IJSONAPIState } from '../../types';
+import { APIActionStatus, IGlobalState } from '../../types';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
 jest.mock('../../JSONAPIClient');
@@ -42,16 +42,18 @@ const client = Promise.resolve(new JSONAPIClient({
   },
 }));
 
-const state = (): {[key: string]: IJSONAPIState<string>} => {
+const state = (): IGlobalState<string> => {
   return {
-    'async-mock': {
-      resources: {
-        '1': {
-          resource: mockData,
-          status: APIActionStatus.SUCCEEDED,
+    apiResources: {
+      'async-mock': {
+        resources: {
+          '1': {
+            resource: mockData,
+            status: APIActionStatus.SUCCEEDED,
+          },
         },
+        status: APIActionStatus.SUCCEEDED,
       },
-      status: APIActionStatus.SUCCEEDED,
     },
   };
 };
@@ -70,7 +72,7 @@ describe('apiAction creator', () => {
 
     it('should dispatch started action', async () => {
       const dispatch = jest.fn()
-;
+      ;
       await testAction({id: '1'})(dispatch, state, client);
       expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
         resourceID: '1',

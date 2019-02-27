@@ -1,4 +1,4 @@
-import { fetch, Headers } from './fetch'
+import { fetch as defaultFetch, Headers } from './fetch'
 
 import { APIRootFailure } from './errors';
 import { JSONAPIClient } from './JSONAPIClient';
@@ -14,7 +14,11 @@ const determinePrefix = (rootURL: string, apiPrefix?: string) => {
 }
 
 const fetchAPIRootAndInitClient = async (
-  apiRootURL: string, apiPrefix?: string, defaultHeaders = {}, defaultFetchArgs = {}
+  apiRootURL: string,
+  apiPrefix?: string,
+  fetch = defaultFetch,
+  defaultHeaders = {},
+  defaultFetchArgs = {},
 ): Promise<JSONAPIClient> => {
   const headers = new Headers({
     'Accept': 'application/json',
