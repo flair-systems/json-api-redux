@@ -7,7 +7,7 @@ export interface IResponse {
   name: string;
 }
 
-const response : IJSONAPIResponse<IResponse> = {
+const response : IJSONAPIResponse<'responses', IResponse> = {
   data: [
     {
       attributes: {
@@ -33,7 +33,8 @@ const client = {
   makeDirectRequest: reqMock,
 };
 
-const pagedResponse : PageableResponse<IResponse> = new PageableResponse<IResponse>(client, response);
+const pagedResponse : PageableResponse<'responses', IResponse> =
+  new PageableResponse<'responses', IResponse>(client, response);
 
 describe('PageableResponse', () => {
   beforeEach(() => {

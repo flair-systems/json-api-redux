@@ -7,7 +7,9 @@ import { APIError, APINetworkError } from './JSONAPIClient/errors';
 import { PageableResponse } from './JSONAPIClient/PageableResponse';
 import { IJSONAPIDocument, IJSONAPIResponse  } from './JSONAPIClient/types';
 
-export type SuccessfulResponse<P> = IJSONAPIResponse<P> | PageableResponse<P>;
+export type SuccessfulResponse<P> =
+  IJSONAPIResponse<keyof P, ValueOf<P>> |
+  PageableResponse<keyof P, ValueOf<P>>;
 export type FailedResponse = APIError | APINetworkError;
 
 interface IAPIAction<T, P> extends Action {
@@ -24,12 +26,12 @@ export type APIActionStartStatus =
   APIActionStatus.DELETING;
 
 export interface IStartAPIAction<T, P> extends IAPIAction<T, P> {
-  payload?: IJSONAPIDocument<ValueOf<P>>;
+  payload?: IJSONAPIDocument<keyof P, ValueOf<P>>;
   status: APIActionStartStatus;
 }
 
 export interface ISucceededAPIAction<T, P> extends IAPIAction<T, P> {
-  payload: SuccessfulResponse<ValueOf<P>>;
+  payload: SuccessfulResponse<P>;
   idMap: {[currentID: string]: string}
   status: APIActionStatus.SUCCEEDED;
 }
@@ -49,12 +51,12 @@ export type APIResourceAction<P> =
 
 export interface IJSONAPIStateResource<T> {
   error?: FailedResponse;
-  resource?: Partial<IJSONAPIDocument<T>>;
+  resource?: Partial<IJSONAPIDocument<keyof T, ValueOf<T>>>;
   status: APIActionStatus;
 }
 
 export interface IJSONAPIState<T> {
-  currentPaged?: PageableResponse<T>;
+  currentPaged?: PageableResponse<keyof T, ValueOf<T>>;
   error?: FailedResponse;
   resources: {
     [key: string]: IJSONAPIStateResource<T>;
@@ -74,11 +76,11 @@ export enum APIActionStatus {
 
 export type ValueOf<T> = T[keyof T];
 
-export type ResourceMap<S> = {[P in keyof S]: IJSONAPIState<S[P]>};
+export type ResourceMap<S> = {[P in keyof S]: IJSONAPIState<S>};
 
 export interface IGlobalState<S> {
   apiResources: ResourceMap<S>;
 };
 
 export type JSONAPIMiddleware<S extends IGlobalState<P>, P> =
-  ThunkMiddleware<S, APIResourceAction<P>, Promise<JSONAPIClient>>;
+  ThunkMiddleware<S, APIResourceAction<P>, Promise<JSONAPIClient<P>>>;

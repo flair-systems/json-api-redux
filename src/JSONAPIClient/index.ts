@@ -13,13 +13,13 @@ const determinePrefix = (rootURL: string, apiPrefix?: string) => {
   return `${url.protocol}//${url.host}`;
 }
 
-const fetchAPIRootAndInitClient = async (
+const fetchAPIRootAndInitClient = async <R>(
   apiRootURL: string,
   apiPrefix?: string,
   fetch = defaultFetch,
   defaultHeaders = {},
   defaultFetchArgs = {},
-): Promise<JSONAPIClient> => {
+): Promise<JSONAPIClient<R>> => {
   const headers = new Headers({
     'Accept': 'application/json',
     ...defaultHeaders,
@@ -33,7 +33,7 @@ const fetchAPIRootAndInitClient = async (
   if (!rootResponse.ok) {
     throw new APIRootFailure(apiRootURL, rootResponse);
   }
-  const apiRoot = (await rootResponse.json()) as IAPIRoot;
+  const apiRoot = (await rootResponse.json()) as IAPIRoot<R>;
   return new JSONAPIClient(
     apiRoot,
     fetch,

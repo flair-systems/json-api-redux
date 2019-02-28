@@ -7,7 +7,6 @@
     "lib": ["es2015", "es6", "dom"],
     "esModuleInterop": true,
     "sourceMap": true,
-    "allowJs": true,
     "moduleResolution": "node",
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,

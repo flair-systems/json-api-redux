@@ -23,7 +23,7 @@ export const initialState = <P>(): IJSONAPIState<P> => {
 const updateResources = <P>(
   indexResources: {[key: string]: IJSONAPIStateResource<P>},
   newResource: IJSONAPIDocument<keyof P, ValueOf<P>>,
-): {[key: string]: IJSONAPIStateResource<ValueOf<P>>} => {
+): {[key: string]: IJSONAPIStateResource<P>} => {
   if (newResource.id) {
     indexResources[newResource.id] = {
       resource: newResource,
@@ -34,9 +34,9 @@ const updateResources = <P>(
 }
 
 const reduceAPIShow = <P>(
-  resource: IJSONAPIStateResource<ValueOf<P>>,
+  resource: IJSONAPIStateResource<P>,
   action: APIAction<constants.SHOW_JSONAPI_RESOURCE, P>,
-): IJSONAPIStateResource<ValueOf<P>> => {
+): IJSONAPIStateResource<P> => {
   switch (action.status) {
     case APIActionStatus.READING:
       if (resource && resource.resource && resource.resource.id) {
@@ -67,9 +67,9 @@ const reduceAPIShow = <P>(
 }
 
 const reduceAPIList = <P>(
-  resource: IJSONAPIState<ValueOf<P>>,
+  resource: IJSONAPIState<P>,
   action: APIAction<constants.LIST_JSONAPI_RESOURCE, P> | APIAction<constants.PAGE_JSONAPI_RESOURCE, P>,
-): IJSONAPIState<ValueOf<P>> => {
+): IJSONAPIState<P> => {
   switch (action.status) {
     case APIActionStatus.READING:
       return { ...resource, status: APIActionStatus.READING };
@@ -95,7 +95,7 @@ const reduceAPIList = <P>(
 }
 
 const reduceAPICreate = <P>(
-  resource: IJSONAPIStateResource<ValueOf<P>>,
+  resource: IJSONAPIStateResource<P>,
   action: APIAction<constants.CREATE_JSONAPI_RESOURCE, P>,
 ) => {
   switch (action.status) {
@@ -124,7 +124,7 @@ const reduceAPICreate = <P>(
   }
 }
 
-const getResource = <P>(state: IJSONAPIState<ValueOf<P>>, action: APIResourceAction<P>) => {
+const getResource = <P>(state: IJSONAPIState<P>, action: APIResourceAction<P>) => {
   if (action.resourceID) {
     return { ...state.resources[action.resourceID] };
   }
@@ -132,9 +132,9 @@ const getResource = <P>(state: IJSONAPIState<ValueOf<P>>, action: APIResourceAct
 }
 
 export const reduceAPIResource = <P>(
-  state: IJSONAPIState<ValueOf<P>> = initialState<ValueOf<P>>(),
+  state: IJSONAPIState<P> = initialState<P>(),
   action: APIResourceAction<P>,
-): IJSONAPIState<ValueOf<P>> => {
+): IJSONAPIState<P> => {
   switch (action.type) {
     case constants.LIST_JSONAPI_RESOURCE:
       return reduceAPIList<P>(state, action);

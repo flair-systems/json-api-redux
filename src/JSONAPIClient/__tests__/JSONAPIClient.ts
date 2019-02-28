@@ -11,7 +11,7 @@ interface IUser {
   email: string;
 }
 
-const apiRoot : IAPIRoot = {
+const apiRoot : IAPIRoot<{users: IUser}> = {
   links: {
     users: {
       self: '/api/users',
@@ -50,7 +50,7 @@ describe('JSONAPIClient', () => {
       },
     });
 
-    const client = new JSONAPIClient(apiRoot, mockFetch, apiPrefix);
+    const client = new JSONAPIClient<{users: IUser}>(apiRoot, mockFetch, apiPrefix);
 
     it('should make a request to https://example.com/api/users', async () => {
       await client.list<IUser>('users');

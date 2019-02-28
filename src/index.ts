@@ -23,7 +23,7 @@ export const jsonAPI = <S extends IGlobalState<P>, P>(
   defaultHeaders = {},
   defaultFetchArgs = {},
 ): JSONAPIMiddleware<S, P> => {
-  const client = fetchAPIRootAndInitClient(apiRoot, apiPrefix, fetch, defaultHeaders, defaultFetchArgs);
+  const client = fetchAPIRootAndInitClient<P>(apiRoot, apiPrefix, fetch, defaultHeaders, defaultFetchArgs);
   return thunk.withExtraArgument(client)
 }
 

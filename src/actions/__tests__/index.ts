@@ -7,6 +7,7 @@ import { createAPIResource, listAPIResource, pageAPIResource, showAPIResource } 
 
 import { JSONAPIClient } from '../../JSONAPIClient';
 import { PageableResponse } from '../../JSONAPIClient/PageableResponse';
+import { IJSONAPIDocument } from '../../JSONAPIClient/types';
 jest.mock('../../JSONAPIClient');
 jest.mock('../../JSONAPIClient/PageableResponse');
 
@@ -15,7 +16,7 @@ interface IUser {
   name: string;
 }
 
-const client = new JSONAPIClient({
+const client = new JSONAPIClient<{users: IUser}>({
   links: {
     users: {
       self: '/api/users',
@@ -26,7 +27,7 @@ const client = new JSONAPIClient({
 
 const promiseClient = Promise.resolve(client);
 
-const mockData = {
+const mockData: IJSONAPIDocument<'users', IUser> = {
   attributes: {
     email: 'ed@flair.co',
     name: 'Ed Paget',
@@ -43,7 +44,7 @@ const mockUser = {
   },
 };
 
-const pageableResource = new PageableResponse<IUser>(client, {
+const pageableResource = new PageableResponse<'users', IUser>(client, {
   data: [mockData],
   meta: {
     firstPage: '/api/users/page[size]=1&page[page]=1',
@@ -54,7 +55,7 @@ const pageableResource = new PageableResponse<IUser>(client, {
   },
 });
 
-const state = (): IGlobalState<IUser> => {
+const state = (): IGlobalState<{users: IUser}> => {
   return {
     apiResources: {
       users: {
@@ -74,7 +75,7 @@ const state = (): IGlobalState<IUser> => {
 describe('listAPIResource', () => {
   it('should call list on the api resource', async () => {
     const dispatch = jest.fn();
-    const userList = listAPIResource<IUser>('users');
+    const userList = listAPIResource('users');
     await userList()(dispatch, state, promiseClient)
     expect(client.list).toHaveBeenCalledWith('users');
   });
@@ -83,7 +84,7 @@ describe('listAPIResource', () => {
 describe('showAPIResource', () => {
   it('should call show the api resource', async () => {
     const dispatch = jest.fn();
-    const userShow = showAPIResource<IUser>('users');
+    const userShow = showAPIResource('users');
     await userShow({id: '1'})(dispatch, state, promiseClient)
     expect(client.show).toHaveBeenCalledWith('users', '1');
   });
@@ -92,28 +93,28 @@ describe('showAPIResource', () => {
 describe('pageAPIResource', () => {
   it('should call firstPage on the api resource', async () => {
     const dispatch = jest.fn();
-    const userList = pageAPIResource<IUser>('users');
+    const userList = pageAPIResource('users');
     await userList({pageLink: 'first'})(dispatch, state, promiseClient)
     expect(pageableResource.firstPage).toHaveBeenCalled();
   });
 
   it('should call prevPage on the api resource', async () => {
     const dispatch = jest.fn();
-    const userList = pageAPIResource<IUser>('users');
+    const userList = pageAPIResource('users');
     await userList({pageLink: 'prev'})(dispatch, state, promiseClient)
     expect(pageableResource.prevPage).toHaveBeenCalled();
   });
 
   it('should call nextPage on the api resource', async () => {
     const dispatch = jest.fn();
-    const userList = pageAPIResource<IUser>('users');
+    const userList = pageAPIResource('users');
     await userList({pageLink: 'next'})(dispatch, state, promiseClient)
     expect(pageableResource.nextPage).toHaveBeenCalled();
   });
 
   it('should call lastPage on the api resource', async () => {
     const dispatch = jest.fn();
-    const userList = pageAPIResource<IUser>('users');
+    const userList = pageAPIResource('users');
     await userList({pageLink: 'last'})(dispatch, state, promiseClient)
     expect(pageableResource.lastPage).toHaveBeenCalled();
   });
@@ -122,7 +123,7 @@ describe('pageAPIResource', () => {
 describe('createAPIResource', () => {
   it('should dispatch a create action', async () => {
     const dispatch = jest.fn();
-    const newUser = createAPIResource<IUser>('users');
+    const newUser = createAPIResource<{users: IUser}>('users');
     await newUser({
       attributes: {
         email: 'ed@flair.co',
@@ -147,7 +148,7 @@ describe('createAPIResource', () => {
   it('should dispatch a success action when it works', async () => {
     const dispatch = jest.fn();
     const createClient = jest.fn().mockResolvedValue(mockUser);
-    const newUser = createAPIResource<IUser>('users');
+    const newUser = createAPIResource<{users: IUser}>('users');
     const oldCreate = client.create;
     client.create = createClient;
     await newUser({
@@ -167,7 +168,7 @@ describe('createAPIResource', () => {
   it('should dispatch an error when it fails', async () => {
     const dispatch = jest.fn();
     const createClient = jest.fn().mockRejectedValue(new Error('Epic Fail!'))
-    const newUser = createAPIResource<IUser>('users');
+    const newUser = createAPIResource<{users: IUser}>('users');
     const oldCreate = client.create;
     client.create = createClient;
     await newUser({
@@ -186,7 +187,7 @@ describe('createAPIResource', () => {
 
   it('should call create on the client', async () => {
     const dispatch = jest.fn();
-    const newUser = createAPIResource<IUser>('users');
+    const newUser = createAPIResource<{users: IUser}>('users');
     await newUser({
       attributes: {
         email: 'ed@flair.co',

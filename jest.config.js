@@ -8,6 +8,7 @@ module.exports = {
   testEnvironment: 'node',
   testPathIgnorePatterns: [
     "/node_modules/",
-    "flycheck",
+    "/flycheck/",
+    "/dist/",
   ]
 };

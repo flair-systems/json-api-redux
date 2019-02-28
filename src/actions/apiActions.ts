@@ -38,7 +38,7 @@ const startAPIAction = <T, P>(
 const succeededAPIAction = <T, P>(
   type: T,
   resourceType: keyof P,
-  payload: SuccessfulResponse<ValueOf<P>>,
+  payload: SuccessfulResponse<P>,
   oldID?: string,
 ): ISucceededAPIAction<T, P> => {
   let resourceID;
@@ -78,7 +78,7 @@ export type APIAsyncAction<P> = (
   client: JSONAPIClient<P>,
   state: IGlobalState<P>,
   ...args: any[]
-) => Promise<SuccessfulResponse<ValueOf<P>>>;
+) => Promise<SuccessfulResponse<P>>;
 
 export type PageLink = 'first' | 'last' | 'next' | 'prev';
 
@@ -118,7 +118,7 @@ export const apiAction = <T, P>(
           startStatus,
           resourceType,
           args.id,
-          toPayload(resourceType, args),
+          toPayload<P>(resourceType, args),
         ));
       } else {
         dispatch(startAPIAction<T, P>(

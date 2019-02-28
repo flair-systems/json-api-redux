@@ -7,7 +7,7 @@ import * as constants from './constants';
 
 import { APIActionStatus, ValueOf } from '../types';
 
-type APIActionCreator<P, A> = (args?: IAPIActionArgs<P>) => A
+type APIActionCreator<P, A> = (args?: IAPIActionArgs<ValueOf<P>>) => A
 
 export type ListAPIActionThunk<P> = APIActionThunk<constants.LIST_JSONAPI_RESOURCE, P>;
 

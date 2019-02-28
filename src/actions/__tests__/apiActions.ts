@@ -10,15 +10,24 @@ import {
 import { APIActionStatus, IGlobalState } from '../../types';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
+import { IJSONAPIDocument } from '../../JSONAPIClient/types';
 jest.mock('../../JSONAPIClient');
 
 const TEST_ACTION = 'TEST_ACTION';
 type TEST_ACTION = typeof TEST_ACTION;
 
-type TestActionThunk = APIActionThunk<TEST_ACTION, string>;
+interface IAsyncMock {
+  string: string;
+}
 
-const mockData = {
-  attributes: 'string',
+interface IAsyncMockSystem {
+  'async-mock': IAsyncMock
+}
+
+type TestActionThunk = APIActionThunk<TEST_ACTION, IAsyncMockSystem>;
+
+const mockData: IJSONAPIDocument<'async-mock', IAsyncMock> = {
+  attributes: { string: 'string' },
   id: '1',
   relationships: {},
   type: 'async-mock',
@@ -26,11 +35,11 @@ const mockData = {
 
 const asyncMock = jest.fn()
 
-const testAction: ActionCreator<TestActionThunk> = apiAction<TEST_ACTION, string>(
+const testAction: ActionCreator<TestActionThunk> = apiAction<TEST_ACTION, IAsyncMockSystem>(
   TEST_ACTION,
   APIActionStatus.READING,
   'async-mock',
-  (_1, _2, inputArg: string) => asyncMock(inputArg),
+  (_1: any, _2: any, inputArg: string) => asyncMock(inputArg),
 )
 
 const client = Promise.resolve(new JSONAPIClient({
@@ -42,7 +51,7 @@ const client = Promise.resolve(new JSONAPIClient({
   },
 }));
 
-const state = (): IGlobalState<string> => {
+const state = (): IGlobalState<IAsyncMockSystem> => {
   return {
     apiResources: {
       'async-mock': {
