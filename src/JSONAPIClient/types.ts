@@ -33,6 +33,10 @@ export interface IJSONAPILink {
 export interface IJSONAPIRelationships {
   [key: string]: {
     data: IJSONAPILink | IJSONAPILink[];
+    links?: {
+      self: string;
+      related: string;
+    };
   }
 }
 
