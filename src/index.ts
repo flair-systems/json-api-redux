@@ -5,8 +5,8 @@ import fetchAPIRootAndInitClient from './JSONAPIClient';
 import { fetch as defaultFetch } from './JSONAPIClient/fetch';
 import { IGlobalState, JSONAPIMiddleware } from './types';
 
-export const jsonapiResourceActionSet = <P>(
-  resourceType: string,
+export const jsonAPIResourceActionSet = <P>(
+  resourceType: keyof P,
 ) => {
   return {
     create: actions.createAPIResource<P>(resourceType),
@@ -16,7 +16,7 @@ export const jsonapiResourceActionSet = <P>(
   };
 };
 
-export const jsonapi = <S extends IGlobalState<P>, P>(
+export const jsonAPI = <S extends IGlobalState<P>, P>(
   apiRoot: string,
   apiPrefix?: string,
   fetch = defaultFetch,
@@ -27,4 +27,4 @@ export const jsonapi = <S extends IGlobalState<P>, P>(
   return thunk.withExtraArgument(client)
 }
 
-export { apiResources } from './reducers';
+export { apiResources, initAPIResources } from './reducers';

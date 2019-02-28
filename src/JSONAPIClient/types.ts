@@ -1,6 +1,6 @@
-export interface IAPIRoot {
+export interface IAPIRoot<S> {
   links: {
-    [key: string]: {
+    [P in keyof S]: {
       self: string;
       type: string;
     };
@@ -36,10 +36,10 @@ export interface IJSONAPIRelationships {
   }
 }
 
-export interface IJSONAPIDocument<T> {
+export interface IJSONAPIDocument<T, A> {
   id?: string;
-  type: string;
-  attributes: T;
+  type: T;
+  attributes: A;
   relationships: IJSONAPIRelationships;
 }
 
@@ -47,13 +47,13 @@ export interface IJSONAPIErrorResponse {
   errors: Array<{status: string; code: string; description: string;}>
 }
 
-export interface IJSONAPIResponse<T> {
-  data: IJSONAPIDocument<T> | Array<IJSONAPIDocument<T>>;
+export interface IJSONAPIResponse<T, A> {
+  data: IJSONAPIDocument<T, A> | Array<IJSONAPIDocument<T, A>>;
   meta: IJSONAPIMeta;
 }
 
 export type HTTPMethod = 'GET' | 'PUT' | 'PATCH' | 'POST' | 'DELETE' | 'HEAD';
 
 export interface IAPIClient {
-  makeDirectRequest: <T>(url: string, method: HTTPMethod) => Promise<IJSONAPIResponse<T>>;
+  makeDirectRequest: <T, A>(url: string, method: HTTPMethod) => Promise<IJSONAPIResponse<T, A>>;
 }

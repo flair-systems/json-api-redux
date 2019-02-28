@@ -12,15 +12,15 @@ import {
   IPaging,
 } from './types';
 
-export class JSONAPIClient implements IAPIClient {
+export class JSONAPIClient<R> implements IAPIClient {
   private fetch: (url: RequestInfo, init?: RequestInit) => Promise<Response>;
-  private apiRoot: IAPIRoot;
+  private apiRoot: IAPIRoot<R>;
   private defaultHeaders: {[key: string]: string};
   private defaultFetchArgs: RequestInit;
   private apiPrefix: string;
 
   constructor(
-    apiRoot: IAPIRoot,
+    apiRoot: IAPIRoot<R>,
     fetch = defaultFetch,
     apiPrefix = '',
     defaultHeaders = {},
@@ -33,48 +33,67 @@ export class JSONAPIClient implements IAPIClient {
     this.defaultFetchArgs = defaultFetchArgs;
   }
 
-  public async list<T> (type: string, filters?: IFilters, page?: IPaging): Promise<PageableResponse<T>> {
-    if (!this.apiRoot.links[type]) {
-      throw new NoAPITypeError(type);
+  public async list<A> (
+    resourceType: keyof IAPIRoot<R>['links'],
+    filters?: IFilters,
+    page?: IPaging,
+  ): Promise<PageableResponse<keyof IAPIRoot<R>['links'], A>> {
+    if (!this.apiRoot.links[resourceType]) {
+      throw new NoAPITypeError(resourceType);
     }
-    const response = await this.makeDirectRequest<T>(
-      `${this.apiPrefix}${this.apiRoot.links[type].self}${this.toQuery(filters, page)}`,
+    const response = await this.makeDirectRequest<keyof IAPIRoot<R>['links'], A>(
+      `${this.apiPrefix}${this.apiRoot.links[resourceType].self}${this.toQuery(filters, page)}`,
       'GET',
     )
 
-    return new PageableResponse<T>(this, response);
+    return new PageableResponse<keyof IAPIRoot<R>['links'], A>(this, response);
   }
 
-  public async show<T> (type: string, id: string): Promise<IJSONAPIResponse<T>> {
-    if (!this.apiRoot.links[type]) {
-      throw new NoAPITypeError(type);
+  public async show<T> (
+    resourceType: keyof IAPIRoot<R>['links'],
+    id: string,
+  ): Promise<IJSONAPIResponse<keyof IAPIRoot<R>['links'], T>> {
+    if (!this.apiRoot.links[resourceType]) {
+      throw new NoAPITypeError(resourceType);
     }
-    return this.makeDirectRequest<T>(`${this.apiPrefix}${this.apiRoot.links[type].self}/${id}`, 'GET');
+    return this.makeDirectRequest<keyof IAPIRoot<R>['links'], T>(
+      `${this.apiPrefix}${this.apiRoot.links[resourceType].self}/${id}`,
+      'GET',
+    );
   }
 
-  public async create<T> (type: string, attributes: T, relationships?: IJSONAPIRelationships, id?: string): Promise<IJSONAPIResponse<T>> {
-    if (!this.apiRoot.links[type]) {
-      throw new NoAPITypeError(type);
+  public async create<A> (
+    resourceType: keyof IAPIRoot<R>['links'],
+    attributes: A,
+    relationships?: IJSONAPIRelationships,
+    id?: string,
+  ): Promise<IJSONAPIResponse<keyof IAPIRoot<R>['links'], A>> {
+    if (!this.apiRoot.links[resourceType]) {
+      throw new NoAPITypeError(resourceType);
     }
 
-    const body: IJSONAPIDocument<T> = {
+    const body: IJSONAPIDocument<keyof IAPIRoot<R>['links'], A> = {
       attributes,
       relationships: relationships ? relationships : {},
-      type,
+      type: resourceType,
     }
 
     if (id) {
       body.id = id;
     }
 
-    return this.makeDirectRequest<T>(
-      `${this.apiPrefix}${this.apiRoot.links[type].self}`,
+    return this.makeDirectRequest<keyof IAPIRoot<R>['links'], A>(
+      `${this.apiPrefix}${this.apiRoot.links[resourceType].self}`,
       'POST',
       body,
     )
   }
 
-  public async makeDirectRequest<T> (url: string, method: HTTPMethod, body?: IJSONAPIDocument<T>): Promise<IJSONAPIResponse<T>> {
+  public async makeDirectRequest<T, A> (
+    url: string,
+    method: HTTPMethod,
+    body?: IJSONAPIDocument<T, A>,
+  ): Promise<IJSONAPIResponse<T, A>> {
     let headers: Headers;
     if (body) {
       headers = new Headers({
@@ -98,10 +117,10 @@ export class JSONAPIClient implements IAPIClient {
     }
 
     const resp = await this.fetch(url, requestInfo)
-    return this.parseResponse<T>(resp);
+    return this.parseResponse<T, A>(resp);
   }
 
-  private async parseResponse<T> (response: Response): Promise<IJSONAPIResponse<T>> {
+  private async parseResponse<T, A> (response: Response): Promise<IJSONAPIResponse<T, A>> {
     if (!response.ok) {
       if (response.status >= 400 && response.status < 500) {
         const body = await response.json();

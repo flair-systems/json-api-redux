@@ -10,9 +10,9 @@ import { IJSONAPIDocument, IJSONAPIResponse  } from './JSONAPIClient/types';
 export type SuccessfulResponse<P> = IJSONAPIResponse<P> | PageableResponse<P>;
 export type FailedResponse = APIError | APINetworkError;
 
-interface IAPIAction<T> extends Action {
+interface IAPIAction<T, P> extends Action {
   resourceID?: string;
-  resourceType: string;
+  resourceType: keyof P;
   status: APIActionStatus;
   type: T,
 }
@@ -23,23 +23,23 @@ export type APIActionStartStatus =
   APIActionStatus.UPDATING |
   APIActionStatus.DELETING;
 
-export interface IStartAPIAction<T, P> extends IAPIAction<T> {
-  payload?: IJSONAPIDocument<P>;
+export interface IStartAPIAction<T, P> extends IAPIAction<T, P> {
+  payload?: IJSONAPIDocument<ValueOf<P>>;
   status: APIActionStartStatus;
 }
 
-export interface ISucceededAPIAction<T, P> extends IAPIAction<T> {
-  payload: SuccessfulResponse<P>;
+export interface ISucceededAPIAction<T, P> extends IAPIAction<T, P> {
+  payload: SuccessfulResponse<ValueOf<P>>;
   idMap: {[currentID: string]: string}
   status: APIActionStatus.SUCCEEDED;
 }
 
-export interface IFailedAPIAction<T> extends IAPIAction<T> {
+export interface IFailedAPIAction<T, P> extends IAPIAction<T, P> {
   payload: FailedResponse;
   status: APIActionStatus.FAILED;
 }
 
-export type APIAction<T, P> = IStartAPIAction<T, P> | ISucceededAPIAction<T, P> | IFailedAPIAction<T>;
+export type APIAction<T, P> = IStartAPIAction<T, P> | ISucceededAPIAction<T, P> | IFailedAPIAction<T, P>;
 
 export type APIResourceAction<P> =
   APIAction<constants.LIST_JSONAPI_RESOURCE, P> |
@@ -72,10 +72,12 @@ export enum APIActionStatus {
   FAILED = 'FAILED',
 }
 
-export interface IGlobalState<P> {
-  apiResources: {
-    [key: string]: IJSONAPIState<P>;
-  };
+export type ValueOf<T> = T[keyof T];
+
+export type ResourceMap<S> = {[P in keyof S]: IJSONAPIState<S[P]>};
+
+export interface IGlobalState<S> {
+  apiResources: ResourceMap<S>;
 };
 
 export type JSONAPIMiddleware<S extends IGlobalState<P>, P> =

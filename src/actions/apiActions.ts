@@ -13,17 +13,18 @@ import {
   IStartAPIAction,
   ISucceededAPIAction,
   SuccessfulResponse,
+  ValueOf,
 } from '../types';
 
 export type APIActionThunk<T, P> =
-  ThunkAction<Promise<APIAction<T, P>>, IGlobalState<P>, Promise<JSONAPIClient>, APIAction<T, P>>;
+  ThunkAction<Promise<APIAction<T, P>>, IGlobalState<P>, Promise<JSONAPIClient<P>>, APIAction<T, P>>;
 
 const startAPIAction = <T, P>(
   type: T,
   status: APIActionStartStatus,
-  resourceType: string,
+  resourceType: keyof P,
   resourceID?: string,
-  payload?: IJSONAPIDocument<P>,
+  payload?: IJSONAPIDocument<keyof P, ValueOf<P>>,
 ): IStartAPIAction<T, P> => {
   return {
     payload,
@@ -36,8 +37,8 @@ const startAPIAction = <T, P>(
 
 const succeededAPIAction = <T, P>(
   type: T,
-  resourceType: string,
-  payload: SuccessfulResponse<P>,
+  resourceType: keyof P,
+  payload: SuccessfulResponse<ValueOf<P>>,
   oldID?: string,
 ): ISucceededAPIAction<T, P> => {
   let resourceID;
@@ -58,12 +59,12 @@ const succeededAPIAction = <T, P>(
   };
 };
 
-const failedAPIAction = <T>(
+const failedAPIAction = <T, P>(
   type: T,
-  resourceType: string,
+  resourceType: keyof P,
   payload: FailedResponse,
   resourceID?: string,
-): IFailedAPIAction<T> => {
+): IFailedAPIAction<T, P> => {
   return {
     payload,
     resourceID,
@@ -74,10 +75,10 @@ const failedAPIAction = <T>(
 };
 
 export type APIAsyncAction<P> = (
-  client: JSONAPIClient,
+  client: JSONAPIClient<P>,
   state: IGlobalState<P>,
   ...args: any[]
-) => Promise<SuccessfulResponse<P>>;
+) => Promise<SuccessfulResponse<ValueOf<P>>>;
 
 export type PageLink = 'first' | 'last' | 'next' | 'prev';
 
@@ -89,9 +90,9 @@ export interface IAPIActionArgs<P> {
 }
 
 const toPayload = <P>(
-  resourceType: string,
-  { id, attributes, relationships }: IAPIActionArgs<P>,
-): IJSONAPIDocument<P> | undefined => {
+  resourceType: keyof P,
+  { id, attributes, relationships }: IAPIActionArgs<ValueOf<P>>,
+): IJSONAPIDocument<keyof P, ValueOf<P>> | undefined => {
   if (attributes) {
     return {
       attributes,
@@ -106,11 +107,11 @@ const toPayload = <P>(
 export const apiAction = <T, P>(
   type: T,
   startStatus: APIActionStartStatus,
-  resourceType: string,
+  resourceType: keyof P,
   asyncMethod: APIAsyncAction<P>,
 ): ActionCreator<APIActionThunk<T, P>> => {
-  return (args?: IAPIActionArgs<P>) => {
-    return async (dispatch, getState, client: Promise<JSONAPIClient>) => {
+  return (args?: IAPIActionArgs<ValueOf<P>>) => {
+    return async (dispatch, getState, client: Promise<JSONAPIClient<P>>) => {
       if (args) {
         dispatch(startAPIAction<T, P>(
           type,
@@ -136,9 +137,9 @@ export const apiAction = <T, P>(
         }
       } catch (error) {
         if (args && args.id) {
-          return dispatch(failedAPIAction<T>(type, resourceType, error, args.id));
+          return dispatch(failedAPIAction<T, P>(type, resourceType, error, args.id));
         }
-        return dispatch(failedAPIAction<T>(type, resourceType, error));
+        return dispatch(failedAPIAction<T, P>(type, resourceType, error));
       }
     }
   }

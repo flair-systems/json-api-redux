@@ -10,7 +10,7 @@ export class NoPageLinkError extends Error {
 }
 
 export class NoAPITypeError extends Error {
-  constructor(apiType: string) {
+  constructor(apiType: any) {
     super();
     this.message = `Type, ${apiType}, is not defined in api root response.`;
   }
