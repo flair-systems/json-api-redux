@@ -19,7 +19,7 @@ export const jsonAPIResourceActionSet = <P>(
 export const jsonAPI = <S extends IGlobalState<P>, P>(
   apiRoot: string,
   apiPrefix?: string,
-  fetch = defaultFetch,
+  fetch: (url: RequestInfo, init?: RequestInit) => Promise<Response> = defaultFetch,
   defaultHeaders = {},
   defaultFetchArgs = {},
 ): JSONAPIMiddleware<S, P> => {

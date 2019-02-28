@@ -30,6 +30,7 @@ interface IAPISystem {
   users: IUser;
   homes: IHome;
 }
+
 interface ITestState extends IGlobalState<IAPISystem> {
   testStateField: boolean;
 }
