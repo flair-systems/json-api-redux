@@ -16,7 +16,7 @@ const determinePrefix = (rootURL: string, apiPrefix?: string) => {
 const fetchAPIRootAndInitClient = async <R>(
   apiRootURL: string,
   apiPrefix?: string,
-  fetch = defaultFetch,
+  fetch: (url: RequestInfo, init?: RequestInit) => Promise<Response> = defaultFetch,
   defaultHeaders = {},
   defaultFetchArgs = {},
 ): Promise<JSONAPIClient<R>> => {

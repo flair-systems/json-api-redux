@@ -28,3 +28,5 @@ export const jsonAPI = <S extends IGlobalState<P>, P>(
 }
 
 export { apiResources, initAPIResources } from './reducers';
+
+export { IGlobalState } from './types';

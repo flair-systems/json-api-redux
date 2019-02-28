@@ -174,14 +174,16 @@ export const initAPIResources = <S>(...types: Array<keyof S>): ResourceMap<S> =>
   }, {} as ResourceMap<S>);
 };
 
-export const apiResources = <S>(
-  state: ResourceMap<S>,
-  action: APIResourceAction<S>,
-): ResourceMap<S> => {
-  if (action && action.resourceType) {
-    return Object.assign({}, state, {
-      [action.resourceType]: reduceAPIResource<S>(state[action.resourceType], action),
-    });
-  }
-  return {...state};
+export const apiResources = <S>(initState: ResourceMap<S>) => {
+    return (
+      state: ResourceMap<S> = initState,
+      action: APIResourceAction<S>,
+    ): ResourceMap<S> => {
+      if (action && action.resourceType) {
+        return Object.assign({}, state, {
+          [action.resourceType]: reduceAPIResource<S>(state[action.resourceType], action),
+        });
+      }
+      return {...state};
+    }
 }

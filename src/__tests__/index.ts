@@ -2,10 +2,16 @@ import 'jest';
 
 import { applyMiddleware, combineReducers, createStore } from 'redux';
 
-import { apiResources, initAPIResources, jsonAPI, jsonAPIResourceActionSet } from '../index';
+import {
+  apiResources as apiResourcesFactory,
+  IGlobalState,
+  initAPIResources,
+  jsonAPI,
+  jsonAPIResourceActionSet,
+} from '../index';
 import { fetch } from '../JSONAPIClient/fetch';
 import { PageableResponse } from '../JSONAPIClient/PageableResponse';
-import { APIActionStatus, IGlobalState} from '../types';
+import { APIActionStatus } from '../types';
 jest.mock('../JSONAPIClient/fetch');
 
 interface IUser {
@@ -20,7 +26,11 @@ interface IHome {
   state: string;
 }
 
-interface ITestState extends IGlobalState<{users: IUser, homes: IHome}> {
+interface IAPISystem {
+  users: IUser;
+  homes: IHome;
+}
+interface ITestState extends IGlobalState<IAPISystem> {
   testStateField: boolean;
 }
 
@@ -111,16 +121,13 @@ const userActions = jsonAPIResourceActionSet<{users: IUser}>('users');
 
 describe('test store', () => {
   const store = () => {
+    const apiResources = apiResourcesFactory(initAPIResources('users', 'homes'));
     return createStore(
       combineReducers<ITestState>({
         apiResources,
         testStateField,
       }),
-      {
-        apiResources: initAPIResources('users', 'homes'),
-        testStateField: false,
-      },
-      applyMiddleware((jsonAPI('https://example.com/api', 'https://example.com', fetch))),
+      applyMiddleware(jsonAPI('https://example.com/api', 'https://example.com', fetch)),
     )
   };
 
