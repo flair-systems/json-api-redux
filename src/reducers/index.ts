@@ -142,20 +142,23 @@ export const reduceAPIResource = <P>(
       return reduceAPIList<P>(state, action);
     case constants.SHOW_JSONAPI_RESOURCE:
       if (action.resourceID) {
-        state.resources[action.resourceID] = reduceAPIShow<P>(getResource(state, action), action);
+        const newResource = { [action.resourceID]: reduceAPIShow<P>(getResource(state, action), action) }
+        const resources = { ...state.resources, ...newResource }
+        return {...state, resources}
       }
       return state;
     case constants.CREATE_JSONAPI_RESOURCE:
       if (action.resourceID) {
-        const newResource = reduceAPICreate<P>(getResource(state, action), action);
-        state.resources[action.resourceID] = newResource;
+        const newResource = { [action.resourceID]: reduceAPICreate<P>(getResource(state, action), action) };
+        const resources = { ...state.resources, ...newResource }
         if (action.status === APIActionStatus.SUCCEEDED && action.resourceID) {
-          state.resources[action.idMap[action.resourceID]] = state.resources[action.resourceID];
+          resources[action.idMap[action.resourceID]] = resources[action.resourceID];
         }
+        return {...state, resources};
       }
-      return state;
+      return {...state};
     default:
-      return state;
+      return {...state};
   }
 }
 
