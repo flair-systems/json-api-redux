@@ -30,7 +30,6 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.6",
-    "@types/whatwg-fetch": "0.0.33",
     "jest": "^24.1.0",
     "ts-jest": "^24.0.0",
     "tslint": "^5.12.1",
