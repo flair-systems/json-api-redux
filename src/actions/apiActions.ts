@@ -107,7 +107,7 @@ const toPayload = <P>(
 
 export const apiAction = <T, P>(
   type: T,
-  startStatus: APIActionStartStatus,
+  startStatus: APIActionStartStatus | APIActionStatus.CREATING,
   resourceType: keyof P,
   asyncMethod: APIAsyncAction<P>,
 ): ActionCreator<APIActionThunk<T, P>> => {
