@@ -10,7 +10,6 @@ import {
   jsonAPIResourceActionSet,
 } from '../index';
 import { fetch } from '../JSONAPIClient/fetch';
-import { PageableResponse } from '../JSONAPIClient/PageableResponse';
 import { APIActionStatus } from '../types';
 jest.mock('../JSONAPIClient/fetch');
 
@@ -151,7 +150,13 @@ describe('test store', () => {
       }),
     );
     expect(testStore.getState().apiResources.users).toEqual(expect.objectContaining({
-      currentPaged: expect.any(PageableResponse),
+      pagingMeta: {
+        firstPage: '/api/users/page[size]=2&page[page]=1',
+        lastPage: '/api/users?page[size]=2&page[page]=10',
+        nextPage: 'api/users?page[size]=2&page[page]=2',
+        prevPage: null,
+        self: '/api/users?page[size]=2&page[page]=1',
+      },
       resources: expect.objectContaining({
         '1': expect.any(Object),
         '2': expect.any(Object),

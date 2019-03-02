@@ -1,18 +1,17 @@
-import { APIError, APINetworkError, NoAPITypeError } from './errors';
+import { APIError, APINetworkError, NoAPITypeError, NoPageLinkError } from './errors';
 import { fetch as defaultFetch, Headers } from './fetch';
-import { PageableResponse } from './PageableResponse';
 import {
   HTTPMethod,
-  IAPIClient,
   IAPIRoot,
   IFilters,
   IJSONAPIDocument,
+  IJSONAPIMeta,
   IJSONAPIRelationships,
   IJSONAPIResponse,
   IPaging,
 } from './types';
 
-export class JSONAPIClient<R> implements IAPIClient {
+export class JSONAPIClient<R> {
   private fetch: (url: RequestInfo, init?: RequestInit) => Promise<Response>;
   private apiRoot: IAPIRoot<R>;
   private defaultHeaders: {[key: string]: string};
@@ -37,16 +36,14 @@ export class JSONAPIClient<R> implements IAPIClient {
     resourceType: keyof IAPIRoot<R>['links'],
     filters?: IFilters,
     page?: IPaging,
-  ): Promise<PageableResponse<keyof IAPIRoot<R>['links'], A>> {
+  ): Promise<IJSONAPIResponse<keyof IAPIRoot<R>['links'], A>> {
     if (!this.apiRoot.links[resourceType]) {
       throw new NoAPITypeError(resourceType);
     }
-    const response = await this.makeDirectRequest<keyof IAPIRoot<R>['links'], A>(
+    return await this.makeDirectRequest<keyof IAPIRoot<R>['links'], A>(
       `${this.apiPrefix}${this.apiRoot.links[resourceType].self}${this.toQuery(filters, page)}`,
       'GET',
-    )
-
-    return new PageableResponse<keyof IAPIRoot<R>['links'], A>(this, response);
+    );
   }
 
   public async show<T> (
@@ -87,6 +84,34 @@ export class JSONAPIClient<R> implements IAPIClient {
       'POST',
       body,
     )
+  }
+
+  public nextPage<T, A> (meta: IJSONAPIMeta) {
+    if (meta.nextPage) {
+      return this.makeDirectRequest<T, A>(meta.nextPage, 'GET')
+    }
+    return Promise.reject(new NoPageLinkError('nextPage'));
+  }
+
+  public prevPage<T, A> (meta: IJSONAPIMeta) {
+    if (meta.prevPage) {
+      return this.makeDirectRequest<T, A>(meta.prevPage, 'GET')
+    }
+    return Promise.reject(new NoPageLinkError('prevPage'));
+  }
+
+  public firstPage<T, A> (meta: IJSONAPIMeta) {
+    if (meta.firstPage) {
+      return this.makeDirectRequest<T, A>(meta.firstPage, 'GET')
+    }
+    return Promise.reject(new NoPageLinkError('firstPage'));
+  }
+
+  public lastPage<T, A> (meta: IJSONAPIMeta) {
+    if (meta.lastPage) {
+      return this.makeDirectRequest<T, A>(meta.lastPage, 'GET')
+    }
+    return Promise.reject(new NoPageLinkError('lastPage'));
   }
 
   public async makeDirectRequest<T, A> (

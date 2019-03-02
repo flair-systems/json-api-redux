@@ -10,10 +10,9 @@ import {
 
 import * as constants from '../actions/constants';
 
-import { PageableResponse } from '../JSONAPIClient/PageableResponse';
 import { IJSONAPIDocument } from '../JSONAPIClient/types';
 
-export const initialState = <P>(): IJSONAPIState<P> => {
+export const initialState = <P>(): IJSONAPIState<keyof P, ValueOf<P>> => {
   return {
     resources: {},
     status: APIActionStatus.INITIALIZED,
@@ -21,9 +20,9 @@ export const initialState = <P>(): IJSONAPIState<P> => {
 }
 
 const updateResources = <P>(
-  indexResources: {[key: string]: IJSONAPIStateResource<P>},
+  indexResources: {[key: string]: IJSONAPIStateResource<keyof P, ValueOf<P>>},
   newResource: IJSONAPIDocument<keyof P, ValueOf<P>>,
-): {[key: string]: IJSONAPIStateResource<P>} => {
+): {[key: string]: IJSONAPIStateResource<keyof P, ValueOf<P>>} => {
   if (newResource.id) {
     indexResources[newResource.id] = {
       resource: newResource,
@@ -34,12 +33,12 @@ const updateResources = <P>(
 }
 
 const reduceAPIShow = <P>(
-  resource: IJSONAPIStateResource<P>,
+  resource: IJSONAPIStateResource<keyof P, ValueOf<P>>,
   action: APIAction<constants.SHOW_JSONAPI_RESOURCE, P>,
-): IJSONAPIStateResource<P> => {
+): IJSONAPIStateResource<keyof P, ValueOf<P>> => {
   switch (action.status) {
     case APIActionStatus.READING:
-      if (resource && resource.resource && resource.resource.id) {
+      if (resource.status !== APIActionStatus.INITIALIZED && resource.resource.id) {
         return { status: APIActionStatus.READING, ...resource };
       }
       return {
@@ -60,16 +59,20 @@ const reduceAPIShow = <P>(
         }
       }
     case APIActionStatus.FAILED:
-      return { error: action.payload, status: APIActionStatus.FAILED, ...resource }
+      return {
+        ...resource,
+        error: action.payload,
+        status: APIActionStatus.FAILED,
+      };
     default:
       return { ...resource };
   }
 }
 
 const reduceAPIList = <P>(
-  resource: IJSONAPIState<P>,
+  resource: IJSONAPIState<keyof P, ValueOf<P>>,
   action: APIAction<constants.LIST_JSONAPI_RESOURCE, P> | APIAction<constants.PAGE_JSONAPI_RESOURCE, P>,
-): IJSONAPIState<P> => {
+): IJSONAPIState<keyof P, ValueOf<P>> => {
   switch (action.status) {
     case APIActionStatus.READING:
       return { ...resource, status: APIActionStatus.READING };
@@ -77,13 +80,13 @@ const reduceAPIList = <P>(
       const { data } = action.payload;
       if (Array.isArray(data)) {
         return {
-          currentPaged: (action.payload as PageableResponse<keyof P, ValueOf<P>>),
+          pagingMeta: action.payload.meta,
           resources: data.reduce(updateResources, { ...resource.resources }),
           status: APIActionStatus.SUCCEEDED,
         };
       } else {
         return {
-          currentPaged: (action.payload as PageableResponse<keyof P, ValueOf<P>>),
+          pagingMeta: action.payload.meta,
           resources: updateResources({ ...resource.resources }, data),
           status: APIActionStatus.SUCCEEDED,
         }
@@ -95,9 +98,9 @@ const reduceAPIList = <P>(
 }
 
 const reduceAPICreate = <P>(
-  resource: IJSONAPIStateResource<P>,
+  resource: IJSONAPIStateResource<keyof P, ValueOf<P>>,
   action: APIAction<constants.CREATE_JSONAPI_RESOURCE, P>,
-) => {
+): IJSONAPIStateResource<keyof P, ValueOf<P>> => {
   switch (action.status) {
     case APIActionStatus.CREATING:
       return {
@@ -116,6 +119,7 @@ const reduceAPICreate = <P>(
       }
     case APIActionStatus.FAILED:
       return {
+        ...resource,
         error: action.payload,
         status: APIActionStatus.FAILED,
       };
@@ -124,17 +128,23 @@ const reduceAPICreate = <P>(
   }
 }
 
-const getResource = <P>(state: IJSONAPIState<P>, action: APIResourceAction<P>) => {
-  if (action.resourceID) {
+const getResource = <P>(
+  state: IJSONAPIState<keyof P, ValueOf<P>>,
+  action: APIResourceAction<P>,
+): IJSONAPIStateResource<keyof P, ValueOf<P>> => {
+  if (action.resourceID && state.resources[action.resourceID]) {
     return { ...state.resources[action.resourceID] };
   }
-  return { status: APIActionStatus.INITIALIZED };
+  return {
+    resource: {},
+    status: APIActionStatus.INITIALIZED,
+  };
 }
 
 export const reduceAPIResource = <P>(
-  state: IJSONAPIState<P> = initialState<P>(),
+  state: IJSONAPIState<keyof P, ValueOf<P>> = initialState<P>(),
   action: APIResourceAction<P>,
-): IJSONAPIState<P> => {
+): IJSONAPIState<keyof P, ValueOf<P>> => {
   switch (action.type) {
     case constants.LIST_JSONAPI_RESOURCE:
       return reduceAPIList<P>(state, action);

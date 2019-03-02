@@ -8,6 +8,7 @@ import {
   APIActionStartStatus,
   APIActionStatus,
   FailedResponse,
+  ICreateAPIAction,
   IFailedAPIAction,
   IGlobalState,
   IStartAPIAction,
@@ -25,7 +26,7 @@ const startAPIAction = <T, P>(
   resourceType: keyof P,
   resourceID?: string,
   payload?: IJSONAPIDocument<keyof P, ValueOf<P>>,
-): IStartAPIAction<T, P> => {
+): IStartAPIAction<T, P> | ICreateAPIAction<P> => {
   return {
     payload,
     resourceID,

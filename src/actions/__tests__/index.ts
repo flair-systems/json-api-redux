@@ -6,10 +6,8 @@ import { APIActionStatus, IGlobalState } from '../../types';
 import { createAPIResource, listAPIResource, pageAPIResource, showAPIResource } from '../index';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
-import { PageableResponse } from '../../JSONAPIClient/PageableResponse';
 import { IJSONAPIDocument } from '../../JSONAPIClient/types';
 jest.mock('../../JSONAPIClient');
-jest.mock('../../JSONAPIClient/PageableResponse');
 
 interface IUser {
   email: string;
@@ -44,22 +42,19 @@ const mockUser = {
   },
 };
 
-const pageableResource = new PageableResponse<'users', IUser>(client, {
-  data: [mockData],
-  meta: {
-    firstPage: '/api/users/page[size]=1&page[page]=1',
-    lastPage: '/api/users?page[size]=1&page[page]=10',
-    nextPage: '/api/users?page[size]=1&page[page]=2',
-    prevPage: null,
-    self: '/api/users?page[size]=1&page[page]=1',
-  },
-});
+const pageableResource = {
+  firstPage: '/api/users/page[size]=1&page[page]=1',
+  lastPage: '/api/users?page[size]=1&page[page]=10',
+  nextPage: '/api/users?page[size]=1&page[page]=2',
+  prevPage: null,
+  self: '/api/users?page[size]=1&page[page]=1',
+};
 
 const state = (): IGlobalState<{users: IUser}> => {
   return {
     apiResources: {
       users: {
-        currentPaged: pageableResource,
+        pagingMeta: pageableResource,
         resources: {
           '1': {
             resource: mockData,
@@ -95,28 +90,28 @@ describe('pageAPIResource', () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
     await userList({pageLink: 'first'})(dispatch, state, promiseClient)
-    expect(pageableResource.firstPage).toHaveBeenCalled();
+    expect(client.firstPage).toHaveBeenCalledWith(pageableResource);
   });
 
   it('should call prevPage on the api resource', async () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
     await userList({pageLink: 'prev'})(dispatch, state, promiseClient)
-    expect(pageableResource.prevPage).toHaveBeenCalled();
+    expect(client.prevPage).toHaveBeenCalledWith(pageableResource);
   });
 
   it('should call nextPage on the api resource', async () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
     await userList({pageLink: 'next'})(dispatch, state, promiseClient)
-    expect(pageableResource.nextPage).toHaveBeenCalled();
+    expect(client.nextPage).toHaveBeenCalledWith(pageableResource);
   });
 
   it('should call lastPage on the api resource', async () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
     await userList({pageLink: 'last'})(dispatch, state, promiseClient)
-    expect(pageableResource.lastPage).toHaveBeenCalled();
+    expect(client.lastPage).toHaveBeenCalledWith(pageableResource);
   });
 });
 

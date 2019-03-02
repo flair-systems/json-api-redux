@@ -2,7 +2,7 @@ export interface IAPIRoot<S> {
   links: {
     [P in keyof S]: {
       self: string;
-      type: string;
+      type: P;
     };
   };
 };
@@ -57,7 +57,3 @@ export interface IJSONAPIResponse<T, A> {
 }
 
 export type HTTPMethod = 'GET' | 'PUT' | 'PATCH' | 'POST' | 'DELETE' | 'HEAD';
-
-export interface IAPIClient {
-  makeDirectRequest: <T, A>(url: string, method: HTTPMethod) => Promise<IJSONAPIResponse<T, A>>;
-}

@@ -38,21 +38,21 @@ export const pageAPIResource = <P>(resourceType: keyof P): APIActionCreator<P, P
     constants.PAGE_JSONAPI_RESOURCE,
     APIActionStatus.READING,
     resourceType,
-    (_, state, { pageLink }) => {
+    (client, state, { pageLink }) => {
       const resource = state.apiResources[resourceType] ?
-        state.apiResources[resourceType].currentPaged : null;
+        state.apiResources[resourceType].pagingMeta: null;
       if (!resource) {
         throw new Error('Resource does not exist.');
       }
       switch(pageLink) {
         case 'first':
-          return resource.firstPage();
+          return client.firstPage(resource);
         case 'last':
-          return resource.lastPage();
+          return client.lastPage(resource);
         case 'next':
-          return resource.nextPage();
+          return client.nextPage(resource);
         case 'prev':
-          return resource.prevPage();
+          return client.prevPage(resource);
         default:
           throw new Error('No or non-existant PageLink supplied.');
       }

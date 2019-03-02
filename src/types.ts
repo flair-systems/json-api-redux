@@ -4,12 +4,9 @@ import { ThunkMiddleware } from 'redux-thunk';
 import * as constants from './actions/constants';
 import { JSONAPIClient } from './JSONAPIClient';
 import { APIError, APINetworkError } from './JSONAPIClient/errors';
-import { PageableResponse } from './JSONAPIClient/PageableResponse';
-import { IJSONAPIDocument, IJSONAPIResponse  } from './JSONAPIClient/types';
+import { IJSONAPIDocument, IJSONAPIMeta, IJSONAPIResponse } from './JSONAPIClient/types';
 
-export type SuccessfulResponse<P> =
-  IJSONAPIResponse<keyof P, ValueOf<P>> |
-  PageableResponse<keyof P, ValueOf<P>>;
+export type SuccessfulResponse<P> = IJSONAPIResponse<keyof P, ValueOf<P>>;
 export type FailedResponse = APIError | APINetworkError;
 
 interface IAPIAction<T, P> extends Action {
@@ -21,13 +18,17 @@ interface IAPIAction<T, P> extends Action {
 
 export type APIActionStartStatus =
   APIActionStatus.READING |
-  APIActionStatus.CREATING |
   APIActionStatus.UPDATING |
   APIActionStatus.DELETING;
 
 export interface IStartAPIAction<T, P> extends IAPIAction<T, P> {
   payload?: IJSONAPIDocument<keyof P, ValueOf<P>>;
   status: APIActionStartStatus;
+}
+
+export interface ICreateAPIAction<P> extends IAPIAction<constants.CREATE_JSONAPI_RESOURCE, P> {
+  payload: IJSONAPIDocument<keyof P, ValueOf<P>>;
+  status: APIActionStatus.CREATING;
 }
 
 export interface ISucceededAPIAction<T, P> extends IAPIAction<T, P> {
@@ -41,7 +42,11 @@ export interface IFailedAPIAction<T, P> extends IAPIAction<T, P> {
   status: APIActionStatus.FAILED;
 }
 
-export type APIAction<T, P> = IStartAPIAction<T, P> | ISucceededAPIAction<T, P> | IFailedAPIAction<T, P>;
+export type APIAction<T, P> =
+  IStartAPIAction<T, P> |
+  ICreateAPIAction<P> |
+  ISucceededAPIAction<T, P> |
+  IFailedAPIAction<T, P>;
 
 export type APIResourceAction<P> =
   APIAction<constants.LIST_JSONAPI_RESOURCE, P> |
@@ -49,17 +54,38 @@ export type APIResourceAction<P> =
   APIAction<constants.PAGE_JSONAPI_RESOURCE, P> |
   APIAction<constants.CREATE_JSONAPI_RESOURCE, P>;
 
-export interface IJSONAPIStateResource<T> {
-  error?: FailedResponse;
-  resource?: Partial<IJSONAPIDocument<keyof T, ValueOf<T>>>;
-  status: APIActionStatus;
+export interface IJSONAPIStateInitializedResource {
+  resource: {};
+  status: APIActionStatus.INITIALIZED;
 }
 
-export interface IJSONAPIState<T> {
-  currentPaged?: PageableResponse<keyof T, ValueOf<T>>;
+export interface IJSONAPIStateLoadingResource<T, A> {
+  resource: Partial<IJSONAPIDocument<T, A>>
+  status: APIActionStartStatus | APIActionStatus.CREATING;
+}
+
+export interface IJSONAPIStateLoadedResource<T, A> {
+  resource: IJSONAPIDocument<T, A>;
+  status: APIActionStatus.SUCCEEDED;
+}
+
+export interface IJSONAPIStateFailedResource<T, A> {
+  error: FailedResponse;
+  resource: Partial<IJSONAPIDocument<T, A>>;
+  status: APIActionStatus.FAILED;
+}
+
+export type IJSONAPIStateResource<T, A> =
+  IJSONAPIStateLoadedResource<T, A> |
+  IJSONAPIStateFailedResource<T, A> |
+  IJSONAPIStateLoadingResource<T, A> |
+  IJSONAPIStateInitializedResource;
+
+export interface IJSONAPIState<T, A> {
+  pagingMeta?: IJSONAPIMeta;
   error?: FailedResponse;
   resources: {
-    [key: string]: IJSONAPIStateResource<T>;
+    [key: string]: IJSONAPIStateResource<T, A>;
   };
   status: APIActionStatus;
 }
@@ -76,7 +102,7 @@ export enum APIActionStatus {
 
 export type ValueOf<T> = T[keyof T];
 
-export type ResourceMap<S> = {[P in keyof S]: IJSONAPIState<S>};
+export type ResourceMap<S> = {[P in keyof S]: IJSONAPIState<P, S[P]>};
 
 export interface IGlobalState<S> {
   apiResources: ResourceMap<S>;

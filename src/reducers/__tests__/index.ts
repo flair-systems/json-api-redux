@@ -3,12 +3,10 @@ import 'jest';
 import { initialState, reduceAPIResource } from '../index';
 
 import * as constants from '../../actions/constants';
-import { APIActionStatus, APIResourceAction, IJSONAPIState } from '../../types';
+import { APIActionStatus, APIResourceAction } from '../../types';
 
-import { JSONAPIClient } from '../../JSONAPIClient';
 import { APIError } from '../../JSONAPIClient/errors';
 import { Response } from '../../JSONAPIClient/fetch';
-import { PageableResponse } from '../../JSONAPIClient/PageableResponse';
 import { IJSONAPIDocument, IJSONAPIResponse } from '../../JSONAPIClient/types';
 jest.mock('../../JSONAPIClient');
 
@@ -50,15 +48,6 @@ const singlePayload = (id: string = '1'): IJSONAPIResponse<'users', IUser> => {
   }
 };
 
-const client = new JSONAPIClient({
-  links: {
-    users: {
-      self: '/api/users',
-      type: 'users',
-    },
-  },
-});
-
 const listReadStart: APIResourceAction<{users: IUser}> = {
   resourceType: 'users',
   status: APIActionStatus.READING,
@@ -67,7 +56,7 @@ const listReadStart: APIResourceAction<{users: IUser}> = {
 
 const listReadSucceed: APIResourceAction<{users: IUser}> = {
   idMap: {},
-  payload: new PageableResponse<'users', IUser>(client, multiPayload),
+  payload: multiPayload,
   resourceType: 'users',
   status: APIActionStatus.SUCCEEDED,
   type: constants.LIST_JSONAPI_RESOURCE,
@@ -156,14 +145,14 @@ describe('redurceAPIResource', () => {
     it('should set the pager field', () => {
       const state = reduceAPIResource<{users: IUser}>(
         initialState(), listReadSucceed,
-      ) as IJSONAPIState<IUser>;
-      expect(state.currentPaged).toBe(listReadSucceed.payload);
+      );
+      expect(state.pagingMeta).toBe(listReadSucceed.payload.meta);
     });
 
     it('should add the resources to the field indexed by id', () => {
       const state = reduceAPIResource<{users: IUser}>(
         initialState(), listReadSucceed,
-      ) as IJSONAPIState<IUser>;
+      );
       expect(state.resources).toEqual(expect.objectContaining({
         '1': expect.objectContaining({
           resource: mockData(),
@@ -196,10 +185,12 @@ describe('redurceAPIResource', () => {
 
     it('should create a new resource when non exists', () => {
       const state = reduceAPIResource<{users: IUser}>(initialState(), showReadStart);
-      const resource = state.resources['1'].resource
+      const resource = state.resources['1']
       expect(resource).toBeDefined();
-      expect(resource && resource.id).toEqual('1');
-      expect(resource && resource.type).toEqual('users');
+      const { id = null, type = null } = resource.status === APIActionStatus.READING ?
+        resource.resource : { };
+      expect(id).toEqual('1');
+      expect(type).toEqual('users');
     });
 
     it('should set status to succeed when finished successfuly', () => {
@@ -222,7 +213,8 @@ describe('redurceAPIResource', () => {
       const state = reduceAPIResource<{users: IUser}>(
         initialState(), showReadFailed,
       );
-      const errMsg = state.resources['1'].error ? state.resources['1'].error.message : null;
+      const resource = state.resources['1']
+      const errMsg = (resource.status === APIActionStatus.FAILED) ? resource.error.message : null;
       expect(errMsg).toMatch(/API Responded/);
     });
   });
@@ -262,7 +254,8 @@ describe('redurceAPIResource', () => {
       const state = reduceAPIResource<{users: IUser}>(
         initialState(), createFailed,
       );
-      const errMsg = state.resources['1'].error ? state.resources['1'].error.message : null;
+      const resource = state.resources['1']
+      const errMsg = (resource.status === APIActionStatus.FAILED) ? resource.error.message : null;
       expect(errMsg).toMatch(/API Responded/);
     });
   });
