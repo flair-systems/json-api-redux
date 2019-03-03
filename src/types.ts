@@ -4,7 +4,12 @@ import { ThunkMiddleware } from 'redux-thunk';
 import * as constants from './actions/constants';
 import { JSONAPIClient } from './JSONAPIClient';
 import { APIError, APINetworkError } from './JSONAPIClient/errors';
-import { IJSONAPIDocument, IJSONAPIMeta, IJSONAPIResponse } from './JSONAPIClient/types';
+import {
+  IJSONAPIDocument,
+  IJSONAPIMeta,
+  IJSONAPIRequestDocument,
+  IJSONAPIResponse,
+} from './JSONAPIClient/types';
 
 export type SuccessfulResponse<P> = IJSONAPIResponse<keyof P, ValueOf<P>>;
 export type FailedResponse = APIError | APINetworkError;
@@ -22,12 +27,12 @@ export type APIActionStartStatus =
   APIActionStatus.DELETING;
 
 export interface IStartAPIAction<T, P> extends IAPIAction<T, P> {
-  payload?: IJSONAPIDocument<keyof P, ValueOf<P>>;
+  payload?: IJSONAPIRequestDocument<keyof P, ValueOf<P>>;
   status: APIActionStartStatus;
 }
 
 export interface ICreateAPIAction<P> extends IAPIAction<constants.CREATE_JSONAPI_RESOURCE, P> {
-  payload: IJSONAPIDocument<keyof P, ValueOf<P>>;
+  payload: IJSONAPIRequestDocument<keyof P, ValueOf<P>>;
   status: APIActionStatus.CREATING;
 }
 
@@ -60,7 +65,7 @@ export interface IJSONAPIStateInitializedResource {
 }
 
 export interface IJSONAPIStateLoadingResource<T, A> {
-  resource: Partial<IJSONAPIDocument<T, A>>
+  resource: IJSONAPIRequestDocument<T, A>;
   status: APIActionStartStatus | APIActionStatus.CREATING;
 }
 
@@ -71,7 +76,7 @@ export interface IJSONAPIStateLoadedResource<T, A> {
 
 export interface IJSONAPIStateFailedResource<T, A> {
   error: FailedResponse;
-  resource: Partial<IJSONAPIDocument<T, A>>;
+  resource: IJSONAPIRequestDocument<T, A>;
   status: APIActionStatus.FAILED;
 }
 

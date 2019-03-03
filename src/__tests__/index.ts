@@ -167,7 +167,7 @@ describe('test store', () => {
 
   it('should dispatch and make a call to users/1', async () => {
     const testStore = store();
-    await testStore.dispatch(userActions.show({id: '1'}));
+    await testStore.dispatch(userActions.show('1'));
     expect(fetch).toHaveBeenCalledWith(
       'https://example.com/api/users/1',
       expect.objectContaining({

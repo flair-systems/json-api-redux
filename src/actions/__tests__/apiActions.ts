@@ -82,7 +82,7 @@ describe('apiAction creator', () => {
     it('should dispatch started action', async () => {
       const dispatch = jest.fn()
       ;
-      await testAction({id: '1'})(dispatch, state, client);
+      await testAction('1')(dispatch, state, client);
       expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
         resourceID: '1',
         resourceType: 'async-mock',
@@ -93,7 +93,7 @@ describe('apiAction creator', () => {
 
     it('should dispatch succeeded action', async () => {
       const dispatch = jest.fn();
-      await testAction({id: '1'})(dispatch, state, client);
+      await testAction('1')(dispatch, state, client);
       expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
         payload: expect.objectContaining({
           data: expect.objectContaining(mockData),
@@ -107,8 +107,8 @@ describe('apiAction creator', () => {
 
     it('should called the async function', async () => {
       const dispatch = jest.fn();
-      await testAction({id: '1'})(dispatch, state, client);
-      expect(asyncMock).toHaveBeenCalledWith({id: '1'});
+      await testAction('1')(dispatch, state, client);
+      expect(asyncMock).toHaveBeenCalledWith('1');
     });
   });
 
@@ -119,7 +119,7 @@ describe('apiAction creator', () => {
 
     it('should dispatch started action', async () => {
       const dispatch = jest.fn();
-      await testAction({id: '1'})(dispatch, state, client);
+      await testAction('1')(dispatch, state, client);
       expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
         resourceID: '1',
         resourceType: 'async-mock',
@@ -130,7 +130,7 @@ describe('apiAction creator', () => {
 
     it('should dispatch failed action', async () => {
       const dispatch = jest.fn();
-      await testAction({id: '1'})(dispatch, state, client);
+      await testAction('1')(dispatch, state, client);
       expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
         payload: expect.any(Error),
         resourceID: '1',

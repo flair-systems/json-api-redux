@@ -79,8 +79,8 @@ describe('listAPIResource', () => {
 describe('showAPIResource', () => {
   it('should call show the api resource', async () => {
     const dispatch = jest.fn();
-    const userShow = showAPIResource('users');
-    await userShow({id: '1'})(dispatch, state, promiseClient)
+    const userShow = showAPIResource<{users: IUser}>('users');
+    await userShow('1')(dispatch, state, promiseClient)
     expect(client.show).toHaveBeenCalledWith('users', '1');
   });
 })
@@ -89,28 +89,28 @@ describe('pageAPIResource', () => {
   it('should call firstPage on the api resource', async () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
-    await userList({pageLink: 'first'})(dispatch, state, promiseClient)
+    await userList('first')(dispatch, state, promiseClient)
     expect(client.firstPage).toHaveBeenCalledWith(pageableResource);
   });
 
   it('should call prevPage on the api resource', async () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
-    await userList({pageLink: 'prev'})(dispatch, state, promiseClient)
+    await userList('prev')(dispatch, state, promiseClient)
     expect(client.prevPage).toHaveBeenCalledWith(pageableResource);
   });
 
   it('should call nextPage on the api resource', async () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
-    await userList({pageLink: 'next'})(dispatch, state, promiseClient)
+    await userList('next')(dispatch, state, promiseClient)
     expect(client.nextPage).toHaveBeenCalledWith(pageableResource);
   });
 
   it('should call lastPage on the api resource', async () => {
     const dispatch = jest.fn();
     const userList = pageAPIResource('users');
-    await userList({pageLink: 'last'})(dispatch, state, promiseClient)
+    await userList('last')(dispatch, state, promiseClient)
     expect(client.lastPage).toHaveBeenCalledWith(pageableResource);
   });
 });
@@ -124,6 +124,7 @@ describe('createAPIResource', () => {
         email: 'ed@flair.co',
         name: 'Ed Paget',
       },
+      id: 'temp-id',
     })(dispatch, state, promiseClient);
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
       payload: {
@@ -131,6 +132,7 @@ describe('createAPIResource', () => {
           email: 'ed@flair.co',
           name: 'Ed Paget',
         },
+        id: 'temp-id',
         relationships: {},
         type: 'users',
       },
@@ -151,6 +153,7 @@ describe('createAPIResource', () => {
         email: 'ed@flair.co',
         name: 'Ed Paget',
       },
+      id: 'temp-id',
     })(dispatch, state, promiseClient);
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
       payload: mockUser,
@@ -171,6 +174,7 @@ describe('createAPIResource', () => {
         email: 'ed@flair.co',
         name: 'Ed Paget',
       },
+      id: 'temp-id',
     })(dispatch, state, promiseClient);
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
       payload: expect.any(Error),

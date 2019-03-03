@@ -1,17 +1,22 @@
 import {
   apiAction,
   APIActionThunk,
+  createAction,
   IAPIActionArgs,
+  pageAction,
+  PageLink,
 } from './apiActions';
 import * as constants from './constants';
 
 import { APIActionStatus, ValueOf } from '../types';
 
-type APIActionCreator<P, A> = (args?: IAPIActionArgs<ValueOf<P>>) => A
+type ReadActionCreator<A> = (id?: string) => A
+type PageActionCreator<A> = (pageLink: PageLink) => A
+type CreateActionCreator<P, A> = (args?: IAPIActionArgs<ValueOf<P>>) => A
 
 export type ListAPIActionThunk<P> = APIActionThunk<constants.LIST_JSONAPI_RESOURCE, P>;
 
-export const listAPIResource = <P>(resourceType: keyof P): APIActionCreator<P, ListAPIActionThunk<P>> => {
+export const listAPIResource = <P>(resourceType: keyof P): ReadActionCreator<ListAPIActionThunk<P>> => {
   return apiAction<constants.LIST_JSONAPI_RESOURCE, P>(
     constants.LIST_JSONAPI_RESOURCE,
     APIActionStatus.READING,
@@ -22,23 +27,21 @@ export const listAPIResource = <P>(resourceType: keyof P): APIActionCreator<P, L
 
 export type ShowAPIActionThunk<P> = APIActionThunk<constants.SHOW_JSONAPI_RESOURCE, P>;
 
-export const showAPIResource = <P>(resourceType: keyof P): APIActionCreator<P, ShowAPIActionThunk<P>> => {
+export const showAPIResource = <P>(resourceType: keyof P): ReadActionCreator<ShowAPIActionThunk<P>> => {
   return apiAction<constants.SHOW_JSONAPI_RESOURCE, P>(
     constants.SHOW_JSONAPI_RESOURCE,
     APIActionStatus.READING,
     resourceType,
-    (client, _, { id }) => client.show<ValueOf<P>>(resourceType, id),
+    (client, _, id) => client.show<ValueOf<P>>(resourceType, id),
   );
 }
 
 export type PageAPIResourceThunk<P> = APIActionThunk<constants.PAGE_JSONAPI_RESOURCE, P>;
 
-export const pageAPIResource = <P>(resourceType: keyof P): APIActionCreator<P, PageAPIResourceThunk<P>> => {
-  return apiAction<constants.PAGE_JSONAPI_RESOURCE, P>(
-    constants.PAGE_JSONAPI_RESOURCE,
-    APIActionStatus.READING,
+export const pageAPIResource = <P>(resourceType: keyof P): PageActionCreator<PageAPIResourceThunk<P>> => {
+  return pageAction<P>(
     resourceType,
-    (client, state, { pageLink }) => {
+    (client, state, pageLink) => {
       const resource = state.apiResources[resourceType] ?
         state.apiResources[resourceType].pagingMeta: null;
       if (!resource) {
@@ -62,10 +65,8 @@ export const pageAPIResource = <P>(resourceType: keyof P): APIActionCreator<P, P
 
 export type CreateAPIResourceThunk<P> = APIActionThunk<constants.CREATE_JSONAPI_RESOURCE, P>;
 
-export const createAPIResource = <P>(resourceType: keyof P): APIActionCreator<P, CreateAPIResourceThunk<P>> => {
-  return apiAction<constants.CREATE_JSONAPI_RESOURCE, P>(
-    constants.CREATE_JSONAPI_RESOURCE,
-    APIActionStatus.CREATING,
+export const createAPIResource = <P>(resourceType: keyof P): CreateActionCreator<P, CreateAPIResourceThunk<P>> => {
+  return createAction<P>(
     resourceType,
     (client, _, { id, attributes, relationships }) => client.create<ValueOf<P>>(
       resourceType, attributes, relationships, id,

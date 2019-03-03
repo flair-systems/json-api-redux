@@ -47,6 +47,8 @@ export interface IJSONAPIDocument<T, A> {
   relationships: IJSONAPIRelationships;
 }
 
+export type IJSONAPIRequestDocument<T, A> = Partial<IJSONAPIDocument<T, Partial<A>>>;
+
 export interface IJSONAPIErrorResponse {
   errors: Array<{status: string; code: string; description: string;}>
 }
