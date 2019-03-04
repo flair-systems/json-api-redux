@@ -1,6 +1,5 @@
 import {
   apiAction,
-  APIActionThunk,
   createAction,
   IAPIActionArgs,
   pageAction,
@@ -8,7 +7,7 @@ import {
 } from './apiActions';
 import * as constants from './constants';
 
-import { APIActionStatus, ValueOf } from '../types';
+import { APIActionStatus, APIActionThunk, ValueOf } from '../types';
 
 type ReadActionCreator<A> = (id?: string) => A
 type PageActionCreator<A> = (pageLink: PageLink) => A

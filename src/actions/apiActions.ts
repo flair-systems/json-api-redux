@@ -1,5 +1,4 @@
 import { ActionCreator } from 'redux';
-import { ThunkAction } from 'redux-thunk';
 
 import * as constants from './constants';
 
@@ -7,9 +6,9 @@ import { JSONAPIClient } from '../JSONAPIClient';
 import { IJSONAPIRelationships, IJSONAPIRequestDocument } from '../JSONAPIClient/types';
 
 import {
-  APIAction,
   APIActionStartStatus,
   APIActionStatus,
+  APIActionThunk,
   FailedResponse,
   ICreateAPIAction,
   IFailedAPIAction,
@@ -20,8 +19,6 @@ import {
   ValueOf,
 } from '../types';
 
-export type APIActionThunk<T, P> =
-  ThunkAction<Promise<APIAction<T, P>>, IGlobalState<P>, Promise<JSONAPIClient<P>>, APIAction<T, P>>;
 
 const createAPIAction = <P> (
   resourceType: keyof P,

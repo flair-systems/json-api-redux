@@ -1,5 +1,5 @@
-import { Action } from 'redux';
-import { ThunkMiddleware } from 'redux-thunk';
+import { Action, ActionCreator } from 'redux';
+import { ThunkAction, ThunkMiddleware } from 'redux-thunk';
 
 import * as constants from './actions/constants';
 import { JSONAPIClient } from './JSONAPIClient';
@@ -20,6 +20,9 @@ interface IAPIAction<T, P> extends Action {
   status: APIActionStatus;
   type: T,
 }
+
+export type APIActionThunk<T, P> =
+  ThunkAction<Promise<APIAction<T, P>>, IGlobalState<P>, Promise<JSONAPIClient<P>>, APIAction<T, P>>;
 
 export type APIActionStartStatus =
   APIActionStatus.READING |
@@ -115,3 +118,5 @@ export interface IGlobalState<S> {
 
 export type JSONAPIMiddleware<S extends IGlobalState<P>, P> =
   ThunkMiddleware<S, APIResourceAction<P>, Promise<JSONAPIClient<P>>>;
+
+export type ThunkDispatchProp<Z, S> = (...args: Parameters<ActionCreator<APIActionThunk<Z, S>>>) => ReturnType<ReturnType<ActionCreator<APIActionThunk<Z, S>>>>;

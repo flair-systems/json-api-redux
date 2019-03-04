@@ -2,12 +2,9 @@ import 'jest';
 
 import { ActionCreator } from 'redux';
 
-import {
-  apiAction,
-  APIActionThunk,
-} from '../apiActions';
+import { apiAction } from '../apiActions';
 
-import { APIActionStatus, IGlobalState } from '../../types';
+import { APIActionStatus, APIActionThunk, IGlobalState } from '../../types';
 
 import { JSONAPIClient } from '../../JSONAPIClient';
 import { IJSONAPIDocument } from '../../JSONAPIClient/types';

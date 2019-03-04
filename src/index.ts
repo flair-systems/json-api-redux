@@ -35,6 +35,7 @@ export {
   IGlobalState,
   IJSONAPIState,
   IJSONAPIStateResource,
+  ThunkDispatchProp,
 } from './types';
 
 export { APIResourceThunk } from './actions';

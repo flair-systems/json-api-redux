@@ -1,12 +1,12 @@
 {
   "name": "json-api-redux",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Hypermedia JSON API Client for Redux",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepublish": "npm test && npm run-script build",
+    "prepare": "npm test -- --no-cache && npm run-script build",
     "test": "jest"
   },
   "repository": {
