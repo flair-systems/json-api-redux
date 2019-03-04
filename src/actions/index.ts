@@ -73,3 +73,9 @@ export const createAPIResource = <P>(resourceType: keyof P): CreateActionCreator
     ),
   );
 }
+
+export type APIResourceThunk<P> =
+  CreateAPIResourceThunk<P> |
+  ShowAPIActionThunk<P> |
+  ListAPIActionThunk<P> |
+  PageAPIResourceThunk<P>;
