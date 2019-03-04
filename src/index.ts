@@ -1,3 +1,4 @@
+import { ActionCreator } from 'redux';
 import thunk from 'redux-thunk';
 
 import * as actions from './actions';
@@ -15,6 +16,8 @@ export const jsonAPIResourceActionSet = <P>(
     show: actions.showAPIResource<P>(resourceType),
   };
 };
+
+export type ThunkDispatchProp<P, T extends ActionCreator<actions.APIResourceThunk<P>>> = (...args: Parameters<T>) => ReturnType<ReturnType<T>>;
 
 export const jsonAPI = <S extends IGlobalState<P>, P>(
   apiRoot: string,
@@ -35,7 +38,6 @@ export {
   IGlobalState,
   IJSONAPIState,
   IJSONAPIStateResource,
-  ThunkDispatchProp,
 } from './types';
 
 export { APIResourceThunk } from './actions';

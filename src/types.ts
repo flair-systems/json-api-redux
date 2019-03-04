@@ -1,4 +1,4 @@
-import { Action, ActionCreator } from 'redux';
+import { Action } from 'redux';
 import { ThunkAction, ThunkMiddleware } from 'redux-thunk';
 
 import * as constants from './actions/constants';
@@ -119,4 +119,3 @@ export interface IGlobalState<S> {
 export type JSONAPIMiddleware<S extends IGlobalState<P>, P> =
   ThunkMiddleware<S, APIResourceAction<P>, Promise<JSONAPIClient<P>>>;
 
-export type ThunkDispatchProp<Z, S> = (...args: Parameters<ActionCreator<APIActionThunk<Z, S>>>) => ReturnType<ReturnType<ActionCreator<APIActionThunk<Z, S>>>>;
