@@ -98,7 +98,7 @@ export interface IJSONAPIState<T, A> {
   status: APIActionStatus;
 }
 
-export enum APIActionStatus {
+export const enum APIActionStatus {
   INITIALIZED = 'INITIALIZED',
   CREATING = 'CREATING',
   UPDATING = 'UPDATING',
